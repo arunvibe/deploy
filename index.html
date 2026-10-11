@@ -157,7 +157,7 @@ const body='<div class="formgrid">'+field('Patient name','patient','Enter patien
 '<div class="field"><label for="medicine">Medicine</label><select id="medicine" name="medicine" required>'+options+'</select><span class="fieldhint" id="availableHint"></span></div>'+
 '<div class="field"><label for="issueType">Issue type</label><select id="issueType" name="issueType"><option value="sale">Paid sale</option><option value="free">Free / clinical issue</option></select></div>'+
 field('Quantity','quantity','Whole number','number','1')+
-field('MRP per unit (₹)','mrp','Set MRP','number',chosen?.mrp??products.find(m=>m.name===chosen?.name)?.mrp??'0')+
+'<div class="field"><label for="mrp">MRP per unit (₹)</label><input id="mrp" name="mrp" type="number" min="0" step="0.01" value="'+Number(chosen?.mrp??0).toFixed(2)+'" readonly><span class="fieldhint">Set or change MRP in medicine inventory.</span></div>'+
 '<div class="field"><label for="discountType">Discount entry</label><select id="discountType" name="discountType"><option value="percent">Percentage (%)</option><option value="amount">Rupees per unit (₹)</option></select></div>'+
 field('Discount value','discountValue','0','number','0')+
 '<div class="field full" id="salePreview" style="background:#f7f8fc;border-radius:10px;padding:12px"><b>Sale preview</b><div id="salePreviewText" class="fieldhint">Choose a medicine and quantity to calculate price and FIFO cost.</div></div></div>'+
@@ -175,7 +175,6 @@ if(issueType==='sale'){
  if(discountType==='percent'){if(discountValue>100){showNotice('Discount percentage cannot exceed 100%.','error');return}discountPercent=discountValue;discountPerUnit=mrp*discountPercent/100}
  else {if(discountValue>mrp){showNotice('Discount per unit cannot exceed the MRP.','error');return}discountPerUnit=discountValue;discountPercent=mrp?discountPerUnit/mrp*100:0}
 }
-state.medicines.filter(x=>x.name.toLowerCase()===productName.toLowerCase()).forEach(x=>x.mrp=mrp);
 let remaining=qty,costTotal=0;const batchesUsed=[];
 for(const lot of lots){if(remaining<=0)break;const take=Math.min(Number(lot.stock),remaining);if(take<=0)continue;const cost=Number(lot.unitCost)||0;lot.stock-=take;remaining-=take;costTotal+=take*cost;batchesUsed.push({medicineId:lot.id,batch:lot.batch||'',distributor:lot.distributor||'Opening stock',quantity:take,unitCost:cost})}
 const revenueTotal=issueType==='sale'?(mrp-discountPerUnit)*qty:0;
