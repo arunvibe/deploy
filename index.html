@@ -38,6 +38,7 @@
 <button data-page="patients"><span class="ico">♙</span> Patient records</button>
 <button data-page="history"><span class="ico">↔</span> Issue history</button>
 <button data-page="purchases"><span class="ico">⇄</span> Purchases & distributors</button>
+<button data-page="manufacturing"><span class="ico">⚙</span> Manufacturing & distribution</button>
 <button data-page="accounts" id="accountsNav" class="hidden"><span class="ico">♙</span> Pharmacy accounts</button>
 </nav></div>
 <div class="sidefoot"><strong>Inventory made simple</strong>Track medicine quantities, expiry dates and every patient issue from one workspace.</div>
@@ -81,6 +82,20 @@
 <div id="purchaseTab-purchases" class="purchase-tab-panel panel hidden" style="margin-top:18px"><div class="toolbar"><div><h2 style="margin:0;font-size:16px">Purchase history</h2><p class="sub" style="font-size:12px;margin-top:3px">Record an invoice and add received stock.</p></div><button class="btn primary" id="recordPurchase">＋ Record purchase</button><button class="btn" id="exportPurchases">↓ Export CSV</button></div><div class="toolbar"><input class="search" id="purchaseSearch" placeholder="Search distributor, medicine or invoice…" aria-label="Search purchases"></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Distributor / invoice</th><th>Medicine / batch</th><th>Qty received</th><th>Unit cost</th><th>MRP / unit</th><th>Total</th></tr></thead><tbody id="purchaseRows"></tbody></table></div></div>
 <div id="purchaseTab-payments" class="purchase-tab-panel panel hidden" style="margin-top:18px"><div class="toolbar"><div><h2 style="margin:0;font-size:16px">Supplier payments</h2><p class="sub" style="font-size:12px;margin-top:3px">Record payments and review balances due.</p></div><button class="btn primary" id="recordDistributorPayment">＋ Record payment</button></div><div class="tablewrap"><table><thead><tr><th>Distributor</th><th>Purchases</th><th>Opening balance</th><th>Payments</th><th>Outstanding</th></tr></thead><tbody id="paymentBalanceRows"></tbody></table></div><div class="panelhead" style="margin-top:20px"><h2>Payment history</h2><button class="btn" id="exportPayments">↓ Export CSV</button></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Distributor</th><th>Amount</th><th>Method</th><th>Reference / note</th></tr></thead><tbody id="paymentRows"></tbody></table></div></div>
 <div id="purchaseTab-reports" class="purchase-tab-panel panel hidden" style="margin-top:18px"><div class="panelhead"><div><h2>Distributor stock report</h2><p class="sub">Current units and inventory value grouped by supplier.</p></div></div><div class="tablewrap"><table><thead><tr><th>Distributor</th><th>Medicine batches</th><th>Units in stock</th><th>Stock value</th></tr></thead><tbody id="distributorRows"></tbody></table></div></div>
+</section>
+<section id="manufacturingPage" class="hidden">
+<div class="panel">
+ <div class="toolbar"><div><h2 style="margin:0;font-size:16px">Manufacturing & distribution</h2><p class="sub" style="font-size:12px;margin-top:3px">Track own-brand production batches, finished stock, customer dispatches and collections separately from pharmacy purchases.</p></div><button class="btn primary" id="addProductionBtn">＋ Record production</button></div>
+ <div class="metrics" style="margin-top:16px">
+  <div class="metric"><div class="metriclabel">Units produced</div><div class="metricvalue" id="mfgProduced">0</div><div class="metricnote">All recorded batches</div></div>
+  <div class="metric"><div class="metriclabel">Finished stock</div><div class="metricvalue" id="mfgStock">0</div><div class="metricnote">Remaining units</div></div>
+  <div class="metric"><div class="metriclabel">Dispatch value</div><div class="metricvalue" id="mfgSales">₹0.00</div><div class="metricnote">Before collections</div></div>
+  <div class="metric"><div class="metriclabel">Receivables</div><div class="metricvalue" id="mfgReceivable">₹0.00</div><div class="metricnote">Outstanding invoices</div></div>
+ </div>
+</div>
+<div class="panel" style="margin-top:16px"><div class="toolbar"><div><h2 style="margin:0;font-size:16px">Finished goods batches</h2><p class="sub" style="font-size:12px;margin-top:3px">Batch-level traceability and available quantities.</p></div><button class="btn" id="exportMfgBtn">Export CSV</button></div><div class="tablewrap"><table><thead><tr><th>Medicine / brand</th><th>Batch</th><th>Produced</th><th>Expiry</th><th>Produced qty</th><th>Available</th><th>Cost / unit</th><th>Sell / unit</th></tr></thead><tbody id="mfgBatchRows"></tbody></table></div></div>
+<div class="panel" style="margin-top:16px"><div class="toolbar"><div><h2 style="margin:0;font-size:16px">Distribution invoices</h2><p class="sub" style="font-size:12px;margin-top:3px">Dispatch stock to pharmacies or distributors and record payments against invoices.</p></div><div class="toolbarleft"><button class="btn primary" id="addDispatchBtn">＋ New dispatch</button><button class="btn" id="addCollectionBtn">＋ Record collection</button></div></div><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Dispatch date</th><th>Items</th><th>Invoice total</th><th>Collected</th><th>Balance</th><th>Action</th></tr></thead><tbody id="mfgInvoiceRows"></tbody></table></div></div>
+<div class="panel" style="margin-top:16px"><div class="toolbar"><div><h2 style="margin:0;font-size:16px">Stock movement audit</h2><p class="sub" style="font-size:12px;margin-top:3px">Production, dispatches, returns and adjustments.</p></div></div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Type</th><th>Batch</th><th>Quantity</th><th>Reference / notes</th></tr></thead><tbody id="mfgMovementRows"></tbody></table></div></div>
 </section>
 <section id="accountsPage" class="hidden">
 <div class="panel"><div class="toolbar"><div><h2 style="margin:0;font-size:16px">Pharmacy accounts</h2><p class="sub" style="font-size:12px;margin-top:3px">Super Admin can switch into a pharmacy workspace or create an account.</p></div><button class="btn primary" id="newAccountBtn">＋ Create account</button></div><div class="tablewrap"><table><thead><tr><th>Email</th><th>Role</th><th>Created</th><th>Last sign in</th><th>Actions</th></tr></thead><tbody id="accountsRows"><tr><td colspan="5">Loading accounts…</td></tr></tbody></table></div></div>
@@ -128,7 +143,7 @@ function stampText(d){return new Date(d).toLocaleString(undefined,{day:'2-digit'
 function stockStatus(m){if(m.stock===0)return ['out','Out of stock'];if(m.stock<=m.min)return ['low','Low stock'];return ['ok','In stock']}
 function badge(m){const [c,t]=stockStatus(m);return '<span class="pill '+c+'">'+t+'</span>'}
 function showNotice(msg,type='success'){const n=document.getElementById('notice');n.className='notice '+type;n.textContent=msg;window.scrollTo({top:0,behavior:'smooth'});setTimeout(()=>{if(n.textContent===msg)n.classList.add('hidden')},4500)}
-function page(name){const names={dashboard:'Dashboard',inventory:'Medicine inventory',patients:'Patient records',history:'Issue history',purchases:'Purchases & distributors',accounts:'Pharmacy accounts'};function downloadCsv(rows,filename){const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=filename;a.click();URL.revokeObjectURL(a.href)}
+function page(name){const names={dashboard:'Dashboard',inventory:'Medicine inventory',patients:'Patient records',history:'Issue history',purchases:'Purchases & distributors',manufacturing:'Manufacturing & distribution',accounts:'Pharmacy accounts'};function downloadCsv(rows,filename){const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=filename;a.click();URL.revokeObjectURL(a.href)}
 function recordPurchase(){
  openModal('Record medicine purchase','<div class="formgrid">'+field('Medicine name','name','e.g. Paracetamol 500 mg')+field('Category / form','category','Tablet, capsule, syrup…','text','Tablet')+field('Distributor name','distributor','Supplier / distributor name')+field('Invoice number (optional)','invoice','Invoice or bill number','text','',false)+field('Batch number','batch','Manufacturer batch / lot','text','',false)+field('Quantity received','quantity','Whole number','number','1')+field('Unit purchase cost (₹)','unitCost','Cost per unit','number','0')+field('MRP per unit (₹)','mrp','Retail price','number','0')+field('Minimum stock alert','min','e.g. 10','number','10')+field('Expiry date (optional)','expiry','','date','',false)+'</div><p class="fieldhint">Expiry date is optional. A purchase is tracked by medicine, distributor and batch. Stock is added to that batch when the same combination already exists.</p>',f=>{
  const name=String(f.get('name')||'').trim(),distributor=String(f.get('distributor')||'').trim(),batch=String(f.get('batch')||'').trim(),invoice=String(f.get('invoice')||'').trim(),quantity=Number(f.get('quantity')),unitCost=Number(f.get('unitCost')),mrp=Number(f.get('mrp')),min=Number(f.get('min')),expiry=String(f.get('expiry')||'');
@@ -142,7 +157,7 @@ function recordPurchase(){
  save();closeModal();render();showNotice('Purchase recorded: '+quantity+' unit(s) of '+name+' from '+distributor+'. Stock updated.')
  },'Save purchase')
 }
-document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===name));Object.keys(names).forEach(k=>document.getElementById(k+'Page').classList.toggle('hidden',k!==name));document.getElementById('crumb').textContent=names[name];document.getElementById('pageTitle').textContent=names[name]==='Dashboard'?'Good afternoon 👋':names[name];document.getElementById('pageSub').textContent=({dashboard:'Here’s what’s happening with your medicine inventory today.',inventory:'Track stock levels, batches and expiry dates.',patients:'Review patient issue summaries and recent dispensing activity.',history:'Every issue recorded in this browser, with quantities and timestamps.',purchases:'Track supplier-wise stock, invoices, purchase costs and history.'})[name];document.getElementById('quickIssue').classList.toggle('hidden',name==='history');render()}
+document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===name));Object.keys(names).forEach(k=>document.getElementById(k+'Page').classList.toggle('hidden',k!==name));document.getElementById('crumb').textContent=names[name];document.getElementById('pageTitle').textContent=names[name]==='Dashboard'?'Good afternoon 👋':names[name];document.getElementById('pageSub').textContent=({dashboard:'Here’s what’s happening with your medicine inventory today.',inventory:'Track stock levels, batches and expiry dates.',patients:'Review patient issue summaries and recent dispensing activity.',history:'Every issue recorded in this browser, with quantities and timestamps.',purchases:'Track supplier-wise stock, invoices, purchase costs and history.',manufacturing:'Record own-brand production, batch stock, dispatches and customer payments.'})[name];document.getElementById('quickIssue').classList.toggle('hidden',name==='history');render()}
 function batchStockValue(m){const remaining=Math.max(0,Number(m?.stock)||0);const purchaseCost=Math.max(0,Number(m?.unitCost)||0);return Math.round((remaining*purchaseCost+Number.EPSILON)*100)/100}
 function render(){
 document.getElementById('metricTypes').textContent=new Set(state.medicines.map(m=>m.name.toLowerCase())).size;
@@ -249,5 +264,77 @@ async function switchWorkspace(userId,email){if(!isSuperAdmin||!userId)return;if
 function showCreateAccount(){if(!isSuperAdmin)return;openModal('Create pharmacy account','<div class="field"><label for="newAccountEmail">Pharmacy user email</label><input id="newAccountEmail" name="newAccountEmail" type="email" required placeholder="pharmacy@example.com"></div><div class="field"><label for="newAccountPassword">Temporary password</label><input id="newAccountPassword" name="newAccountPassword" type="password" minlength="12" required placeholder="At least 12 characters"></div><p class="fieldhint">The account is created with pharmacy-user permissions only. Share the temporary password securely and ask the user to change it after signing in.</p>',async f=>{const email=String(f.get('newAccountEmail')||'').trim(),password=String(f.get('newAccountPassword')||'');if(password.length<12){showNotice('Use a temporary password with at least 12 characters.','error');return}try{await adminRequest({action:'create',email,password});closeModal();showNotice('Pharmacy account created. Share the temporary password securely.');await loadAccounts()}catch(e){showNotice('Could not create account: '+(e.message||'Unknown error'),'error')}},'Create account')}
 async function resetAccountPassword(userId,email){if(!isSuperAdmin||!userId)return;openModal('Reset account password','<p class="fieldhint" style="margin-bottom:14px">Set a new password for <b>'+esc(email||'this account')+'</b>. The password must contain at least 12 characters. Share it securely.</p><div class="field"><label for="resetAccountPassword">New temporary password</label><input id="resetAccountPassword" name="resetAccountPassword" type="password" minlength="12" autocomplete="new-password" required placeholder="At least 12 characters"></div>',async f=>{const password=String(f.get('resetAccountPassword')||'');if(password.length<12){showNotice('Use a password with at least 12 characters.','error');return}try{await adminRequest({action:'reset_password',user_id:userId,password});closeModal();showNotice('Password updated for '+(email||'the account')+'. Share it securely.')}catch(e){showNotice('Could not reset password: '+(e.message||'Unknown error'),'error')}},'Update password')}
 async function deleteAccount(userId){if(!isSuperAdmin||!confirm('Permanently delete this pharmacy account and its stored workspace data? This cannot be undone.'))return;try{await adminRequest({action:'delete',user_id:userId});showNotice('Pharmacy account deleted.');await loadAccounts()}catch(e){showNotice('Could not delete account: '+(e.message||'Unknown error'),'error')}}
+
+// Own-brand manufacturing and distribution. Kept separate from purchased pharmacy stock.
+(function(){
+ const empty=()=>({batches:[],invoices:[],collections:[],movements:[]});
+ function data(){state.manufacturing=state.manufacturing&&typeof state.manufacturing==='object'?state.manufacturing:empty();for(const k of ['batches','invoices','collections','movements'])if(!Array.isArray(state.manufacturing[k]))state.manufacturing[k]=[];return state.manufacturing}
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const money=v=>'₹'+(Number(v)||0).toFixed(2);
+ const date=()=>new Date().toISOString().slice(0,10);
+ function available(b){return Math.max(0,Number(b.quantity)||0)-Math.max(0,Number(b.dispatched)||0)+Math.max(0,Number(b.returned)||0)-Math.max(0,Number(b.adjusted)||0)}
+ function renderMfg(){
+  const d=data(), batches=d.batches, invoices=d.invoices;
+  document.getElementById('mfgProduced').textContent=batches.reduce((a,b)=>a+Number(b.quantity||0),0).toLocaleString();
+  document.getElementById('mfgStock').textContent=batches.reduce((a,b)=>a+available(b),0).toLocaleString();
+  document.getElementById('mfgSales').textContent=money(invoices.reduce((a,i)=>a+Number(i.total||0),0));
+  document.getElementById('mfgReceivable').textContent=money(invoices.reduce((a,i)=>a+Math.max(0,Number(i.total||0)-Number(i.paid||0)),0));
+  document.getElementById('mfgBatchRows').innerHTML=batches.length?batches.map(b=>'<tr><td>'+esc(b.name)+'</td><td>'+esc(b.batch)+'</td><td>'+esc(b.produced)+'</td><td>'+esc(b.expiry||'—')+'</td><td>'+Number(b.quantity)+'</td><td><strong>'+available(b)+'</strong></td><td>'+money(b.cost)+'</td><td>'+money(b.price)+'</td></tr>').join(''):'<tr><td colspan="8">No production batches yet. Select “Record production” to add your first batch.</td></tr>';
+  document.getElementById('mfgInvoiceRows').innerHTML=invoices.length?invoices.slice().reverse().map(i=>'<tr><td>'+esc(i.invoice)+'</td><td>'+esc(i.customer)+'</td><td>'+esc(i.date)+'</td><td>'+esc(i.items.map(x=>x.name+' × '+x.qty).join(', '))+'</td><td>'+money(i.total)+'</td><td>'+money(i.paid)+'</td><td><strong>'+money(Math.max(0,i.total-i.paid))+'</strong></td><td><button class="btn mfg-collect" data-id="'+esc(i.id)+'">Collect</button></td></tr>').join(''):'<tr><td colspan="8">No distribution invoices recorded.</td></tr>';
+  document.getElementById('mfgMovementRows').innerHTML=d.movements.length?d.movements.slice().reverse().map(m=>'<tr><td>'+esc(m.date)+'</td><td>'+esc(m.type)+'</td><td>'+esc(m.batch)+'</td><td>'+esc(m.qty)+'</td><td>'+esc(m.note||'—')+'</td></tr>').join(''):'<tr><td colspan="5">No movements recorded yet.</td></tr>';
+ }
+ function production(){
+  const name=prompt('Medicine / own brand name:');if(!name||!name.trim())return;
+  const batch=prompt('Unique batch number:');if(!batch||!batch.trim())return;
+  const d=data();if(d.batches.some(b=>b.batch.toLowerCase()===batch.trim().toLowerCase())){showNotice('That batch number already exists. Use a unique batch number.','error');return}
+  const quantity=Number(prompt('Quantity produced (whole units):','100'));if(!Number.isInteger(quantity)||quantity<=0){showNotice('Enter a valid positive whole quantity.','error');return}
+  const cost=Number(prompt('Production cost per unit (₹):','0'));const price=Number(prompt('Distribution selling price per unit (₹):','0'));
+  if(!Number.isFinite(cost)||cost<0||!Number.isFinite(price)||price<0){showNotice('Cost and selling price must be zero or greater.','error');return}
+  const produced=prompt('Production date (YYYY-MM-DD):',date())||date(),expiry=prompt('Expiry date (YYYY-MM-DD, optional):','')||'';
+  const b={id:'pb-'+Date.now(),name:name.trim(),batch:batch.trim(),produced,expiry,quantity,dispatched:0,returned:0,adjusted:0,cost,price};
+  d.batches.push(b);d.movements.push({date:produced,type:'Production',batch:b.batch,qty:quantity,note:b.name+'; cost '+money(cost)+'/unit'});save();renderMfg();showNotice('Production batch recorded.');
+ }
+ function dispatch(){
+  const d=data();if(!d.batches.some(b=>available(b)>0)){showNotice('Record a production batch with available stock first.','error');return}
+  const customer=prompt('Customer pharmacy / distributor name:');if(!customer||!customer.trim())return;
+  const invoice=prompt('Invoice number:', 'INV-'+date().replace(/-/g,'')+'-'+(d.invoices.length+1));if(!invoice||!invoice.trim())return;
+  if(d.invoices.some(i=>i.invoice.toLowerCase()===invoice.trim().toLowerCase())){showNotice('Invoice number already exists.','error');return}
+  const items=[];let keep=true;
+  while(keep){const options=d.batches.filter(b=>available(b)>0);if(!options.length)break;
+   const listing=options.map((b,n)=>(n+1)+'. '+b.name+' | batch '+b.batch+' | available '+available(b)+' | '+money(b.price)+'/unit').join('\n');
+   const chosen=Number(prompt('Choose batch number to dispatch:\n'+listing+'\nEnter 1-'+options.length+' (Cancel to finish)', '1'));if(!Number.isInteger(chosen)||chosen<1||chosen>options.length)break;
+   const b=options[chosen-1],qty=Number(prompt('Quantity for '+b.name+' / '+b.batch+' (available '+available(b)+')','1'));
+   if(!Number.isInteger(qty)||qty<1||qty>available(b)){showNotice('Quantity must be a whole number within available stock.','error');continue}
+   b.dispatched=(Number(b.dispatched)||0)+qty;items.push({batchId:b.id,batch:b.batch,name:b.name,qty,price:Number(b.price)||0,cost:Number(b.cost)||0});
+   keep=confirm('Added '+qty+' units of '+b.name+'. Add another batch to this invoice?');
+  }
+  if(!items.length){showNotice('No items dispatched; no invoice was created.','error');return}
+  const total=items.reduce((a,x)=>a+x.qty*x.price,0),id='di-'+Date.now();
+  d.invoices.push({id,invoice:invoice.trim(),customer:customer.trim(),date:date(),items,total,paid:0});
+  items.forEach(x=>d.movements.push({date:date(),type:'Dispatch',batch:x.batch,qty:-x.qty,note:invoice.trim()+' → '+customer.trim()}));
+  save();renderMfg();showNotice('Dispatch invoice '+invoice+' recorded. Balance: '+money(total));
+ }
+ function collect(invoiceId){
+  const d=data(),i=d.invoices.find(x=>x.id===invoiceId);if(!i)return;
+  const balance=Math.max(0,Number(i.total)-Number(i.paid));if(!balance){showNotice('This invoice is already fully paid.');return}
+  const amount=Number(prompt('Collection amount for '+i.invoice+' (balance '+money(balance)+'):',String(balance)));if(!Number.isFinite(amount)||amount<=0||amount>balance){showNotice('Enter an amount greater than zero and no more than the balance.','error');return}
+  const method=prompt('Payment method (Cash / Bank / UPI):','Bank')||'Unspecified';
+  i.paid=(Number(i.paid)||0)+amount;d.collections.push({id:'col-'+Date.now(),invoiceId:i.id,invoice:i.invoice,customer:i.customer,date:date(),amount,method});
+  save();renderMfg();showNotice('Collection recorded: '+money(amount));
+ }
+ function exportCsv(){const d=data(),rows=[['Type','Medicine','Batch / Invoice','Date','Expiry','Quantity','Available','Cost per unit','Sell per unit','Customer','Invoice total','Collected','Balance']];
+  d.batches.forEach(b=>rows.push(['Production',b.name,b.batch,b.produced,b.expiry,b.quantity,available(b),b.cost,b.price,'','','','']));
+  d.invoices.forEach(i=>rows.push(['Distribution','',i.invoice,i.date,'',i.items.reduce((a,x)=>a+x.qty,0),'','','',i.customer,i.total,i.paid,Math.max(0,i.total-i.paid)]));
+  const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download='meditrack-manufacturing-distribution.csv';a.click();URL.revokeObjectURL(a.href);
+ }
+ document.getElementById('addProductionBtn').addEventListener('click',production);
+ document.getElementById('addDispatchBtn').addEventListener('click',dispatch);
+ document.getElementById('addCollectionBtn').addEventListener('click',()=>{const d=data();if(!d.invoices.length){showNotice('Create a dispatch invoice first.','error');return}const list=d.invoices.map((i,n)=>(n+1)+'. '+i.invoice+' — '+i.customer+' — balance '+money(i.total-i.paid)).join('\n');const n=Number(prompt('Choose invoice for collection:\n'+list,'1'));if(Number.isInteger(n)&&n>=1&&n<=d.invoices.length)collect(d.invoices[n-1].id)});
+ document.getElementById('mfgInvoiceRows').addEventListener('click',e=>{const b=e.target.closest('.mfg-collect');if(b)collect(b.dataset.id)});
+ document.getElementById('exportMfgBtn').addEventListener('click',exportCsv);
+ document.querySelectorAll('[data-page="manufacturing"]').forEach(b=>b.addEventListener('click',renderMfg));
+ renderMfg();
+})();
+
 initCloud();
 </script></body></html>
