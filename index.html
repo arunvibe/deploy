@@ -79,7 +79,7 @@ input:focus,select:focus,textarea:focus{border-color:#7da1fa!important;box-shado
 
 /* Business analytics */
 .analytics-panel{padding:23px}.analytics-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.analytics-filters select{min-width:145px}.analytics-filters input[type=date]{width:145px;padding:9px!important}
-.analytics-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:21px 0 26px}
+.analytics-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;margin:21px 0 26px}
 .analytics-stat{border:1px solid #e7edf5;border-radius:12px;padding:14px;background:linear-gradient(145deg,#fbfcff,#fff);min-width:0}
 .analytics-stat span{display:block;color:#78869b;font-size:11px;font-weight:650;margin-bottom:7px}.analytics-stat strong{font-size:20px;letter-spacing:-.5px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .analytics-chart-head,.analytics-report-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 12px}.analytics-chart-head h3,.analytics-report-head h3{margin:0;font-size:14px;font-weight:800}.analytics-chart-head p,.analytics-report-head p{margin:4px 0 0;font-size:11px}
@@ -132,6 +132,7 @@ input:focus,select:focus,textarea:focus{border-color:#7da1fa!important;box-shado
   <div class="analytics-stat"><span>Sales revenue</span><strong id="analyticsRevenue">₹0.00</strong></div>
   <div class="analytics-stat"><span>Gross profit</span><strong id="analyticsProfit">₹0.00</strong></div>
   <div class="analytics-stat"><span>Manufacturing bulk profit</span><strong id="analyticsMfgProfit">₹0.00</strong></div>
+  <div class="analytics-stat"><span>Consultation fees</span><strong id="analyticsConsultation">₹0.00</strong></div>
   <div class="analytics-stat"><span>Outstanding bulk invoices</span><strong id="analyticsReceivable">₹0.00</strong></div>
  </div>
  <div class="analytics-chart-head"><div><h3>Sales and profit trend</h3><p class="sub">Monthly totals for the selected period</p></div><div class="chart-legend"><span><i class="legend-sales"></i> Sales</span><span><i class="legend-profit"></i> Profit</span></div></div>
@@ -291,20 +292,25 @@ function renderAnalytics(){
  const pharmacySales=paidIssues.reduce((a,i)=>a+Number(i.revenueTotal||0),0);
  const pharmacyCost=paidIssues.reduce((a,i)=>a+Number(i.costTotal||0),0);
  const pharmacyProfit=paidIssues.reduce((a,i)=>a+Number(i.profitTotal||0),0);
+ const visitFees=new Map();
+ pharmacy.forEach(i=>{const fee=Number(i.consultationFee)||0;if(fee>0){const key=i.visitId||i.visitRef||('LEGACY-'+i.id);if(!visitFees.has(key))visitFees.set(key,{date:issueDate(i),fee});}});
+ const consultationRevenue=[...visitFees.values()].reduce((a,v)=>a+v.fee,0);
  const mfg=(state.manufacturing&&Array.isArray(state.manufacturing.invoices)?state.manufacturing.invoices:[]).filter(i=>inRange(i.date));
  const mfgSales=mfg.reduce((a,i)=>a+Number(i.total||0),0);
  const mfgCost=mfg.reduce((a,i)=>a+(i.items||[]).reduce((n,x)=>n+Number(x.qty||0)*Number(x.cost||0),0),0);
  const mfgProfit=mfgSales-mfgCost;
  const mfgPaid=mfg.reduce((a,i)=>a+Number(i.paid||0),0);
  const receivable=mfg.reduce((a,i)=>a+Math.max(0,Number(i.total||0)-Number(i.paid||0)),0);
- document.getElementById('analyticsRevenue').textContent='₹'+(pharmacySales+mfgSales).toFixed(2);
- document.getElementById('analyticsProfit').textContent='₹'+(pharmacyProfit+mfgProfit).toFixed(2);
+ document.getElementById('analyticsRevenue').textContent='₹'+(pharmacySales+mfgSales+consultationRevenue).toFixed(2);
+ document.getElementById('analyticsProfit').textContent='₹'+(pharmacyProfit+mfgProfit+consultationRevenue).toFixed(2);
+ document.getElementById('analyticsConsultation').textContent='₹'+consultationRevenue.toFixed(2);
  document.getElementById('analyticsMfgProfit').textContent='₹'+mfgProfit.toFixed(2);
  document.getElementById('analyticsReceivable').textContent='₹'+receivable.toFixed(2);
- const rows=[['Pharmacy sales',pharmacySales,pharmacyCost,pharmacyProfit,pharmacySales,0],['Manufacturing bulk sales',mfgSales,mfgCost,mfgProfit,mfgPaid,receivable]];
+ const rows=[['Pharmacy sales',pharmacySales,pharmacyCost,pharmacyProfit,pharmacySales,0],['Consultation fees',consultationRevenue,0,consultationRevenue,consultationRevenue,0],['Manufacturing bulk sales',mfgSales,mfgCost,mfgProfit,mfgPaid,receivable]];
  document.getElementById('analyticsRows').innerHTML=rows.map(r=>'<tr><td><b>'+r[0]+'</b></td><td>₹'+r[1].toFixed(2)+'</td><td>₹'+r[2].toFixed(2)+'</td><td><b>₹'+r[3].toFixed(2)+'</b></td><td>₹'+r[4].toFixed(2)+'</td><td>₹'+r[5].toFixed(2)+'</td></tr>').join('');
  const monthMap={};const add=(day,sales,profit)=>{if(!day)return;const key=day.slice(0,7);if(!monthMap[key])monthMap[key]={sales:0,profit:0};monthMap[key].sales+=sales;monthMap[key].profit+=profit};
  paidIssues.forEach(i=>add(issueDate(i),Number(i.revenueTotal||0),Number(i.profitTotal||0)));
+ [...visitFees.values()].forEach(v=>add(v.date,v.fee,v.fee));
  mfg.forEach(i=>add(i.date,Number(i.total||0),Number(i.total||0)-(i.items||[]).reduce((n,x)=>n+Number(x.qty||0)*Number(x.cost||0),0)));
  let months=Object.keys(monthMap).sort();if(months.length>6)months=months.slice(-6);
  if(!months.length&&range.value!=='all'){const cur=new Date(start.getFullYear(),start.getMonth(),1);const last=new Date(end.getFullYear(),end.getMonth(),1);for(let d=new Date(cur);d<=last&&months.length<12;d.setMonth(d.getMonth()+1))months.push(d.toISOString().slice(0,7))}
