@@ -91,8 +91,7 @@
   <div class="metric"><div class="metriclabel">Finished stock</div><div class="metricvalue" id="mfgStock">0</div><div class="metricnote">Remaining units</div></div>
   <div class="metric"><div class="metriclabel">Dispatch value</div><div class="metricvalue" id="mfgSales">₹0.00</div><div class="metricnote">Before collections</div></div>
   <div class="metric"><div class="metriclabel">Receivables</div><div class="metricvalue" id="mfgReceivable">₹0.00</div><div class="metricnote">Outstanding invoices</div></div>
-  <div class="metric"><div class="metriclabel">Manufacturing profit</div><div class="metricvalue" id="mfgManufacturingProfit">₹0.00</div><div class="metricnote">Transfer value less production cost, on dispatched units</div></div>
-  <div class="metric"><div class="metriclabel">Distribution profit</div><div class="metricvalue" id="mfgDistributionProfit">₹0.00</div><div class="metricnote">Customer sales less transfer value</div></div>
+  <div class="metric"><div class="metriclabel">Bulk sales profit</div><div class="metricvalue" id="mfgSalesProfit">₹0.00</div><div class="metricnote">Selling revenue minus manufacturing cost for dispatched units</div></div>
  </div>
 </div>
 <div class="panel" style="margin-top:16px"><div class="toolbar"><div><h2 style="margin:0;font-size:16px">Finished goods batches</h2><p class="sub" style="font-size:12px;margin-top:3px">Batch-level traceability and available quantities.</p></div><button class="btn" id="exportMfgBtn">Export CSV</button></div><div class="tablewrap"><table><thead><tr><th>Medicine / brand</th><th>Batch</th><th>Produced</th><th>Expiry</th><th>Produced qty</th><th>Available</th><th>Cost / unit</th><th>Sell / unit</th></tr></thead><tbody id="mfgBatchRows"></tbody></table></div></div>
@@ -281,38 +280,36 @@ async function deleteAccount(userId){if(!isSuperAdmin||!confirm('Permanently del
   document.getElementById('mfgStock').textContent=batches.reduce((a,b)=>a+available(b),0).toLocaleString();
   document.getElementById('mfgSales').textContent=money(invoices.reduce((a,i)=>a+Number(i.total||0),0));
   document.getElementById('mfgReceivable').textContent=money(invoices.reduce((a,i)=>a+Math.max(0,Number(i.total||0)-Number(i.paid||0)),0));
-  const manufacturingProfit=invoices.reduce((sum,i)=>sum+i.items.reduce((n,x)=>n+Number(x.qty||0)*((Number(x.transferPrice??x.price)||0)-(Number(x.cost)||0)),0),0);
-  const distributionProfit=invoices.reduce((sum,i)=>sum+i.items.reduce((n,x)=>n+Number(x.qty||0)*((Number(x.price)||0)-(Number(x.transferPrice??x.price)||0)),0),0);
-  document.getElementById('mfgManufacturingProfit').textContent=money(manufacturingProfit);
-  document.getElementById('mfgDistributionProfit').textContent=money(distributionProfit);
+  const salesProfit=invoices.reduce((sum,i)=>sum+i.items.reduce((n,x)=>n+Number(x.qty||0)*((Number(x.price)||0)-(Number(x.cost)||0)),0),0);
+  document.getElementById('mfgSalesProfit').textContent=money(salesProfit);
   document.getElementById('mfgBatchRows').innerHTML=batches.length?batches.map(b=>'<tr><td>'+esc(b.name)+'</td><td>'+esc(b.batch)+'</td><td>'+esc(b.produced)+'</td><td>'+esc(b.expiry||'—')+'</td><td>'+Number(b.quantity)+'</td><td><strong>'+available(b)+'</strong></td><td>'+money(b.cost)+'</td><td>'+money(b.price)+'</td></tr>').join(''):'<tr><td colspan="8">No production batches yet. Select “Record production” to add your first batch.</td></tr>';
   document.getElementById('mfgInvoiceRows').innerHTML=invoices.length?invoices.slice().reverse().map(i=>'<tr><td>'+esc(i.invoice)+'</td><td>'+esc(i.customer)+'</td><td>'+esc(i.date)+'</td><td>'+esc(i.items.map(x=>x.name+' × '+x.qty).join(', '))+'</td><td>'+money(i.total)+'</td><td>'+money(i.paid)+'</td><td><strong>'+money(Math.max(0,i.total-i.paid))+'</strong></td><td><button class="btn mfg-collect" data-id="'+esc(i.id)+'">Collect</button></td></tr>').join(''):'<tr><td colspan="8">No distribution invoices recorded.</td></tr>';
   document.getElementById('mfgMovementRows').innerHTML=d.movements.length?d.movements.slice().reverse().map(m=>'<tr><td>'+esc(m.date)+'</td><td>'+esc(m.type)+'</td><td>'+esc(m.batch)+'</td><td>'+esc(m.qty)+'</td><td>'+esc(m.note||'—')+'</td></tr>').join(''):'<tr><td colspan="5">No movements recorded yet.</td></tr>';
  }
  function production(){
   const d=data();
-  openModal('Record production batch','<p class="sub" style="margin:0 0 12px">Enter your own-brand medicine production details.</p><div class="formgrid">'+field('Medicine / brand name','mfgName','e.g. MedCare Paracetamol')+field('Batch number','mfgBatch','Unique batch / lot number')+field('Production date','mfgProducedDate','', 'date',date())+field('Expiry date (optional)','mfgExpiry','', 'date','',false)+field('Quantity produced','mfgQuantity','Whole units','number','100')+field('Production cost per unit (₹)','mfgCost','Manufacturing cost','number','0')+field('Transfer price to distribution per unit (₹)','mfgTransferPrice','Manufacturing selling price','number','0')+field('Customer selling price per unit (₹)','mfgPrice','Distribution selling price','number','0')+'</div>',f=>{
-   const name=String(f.get('mfgName')||'').trim(),batch=String(f.get('mfgBatch')||'').trim(),quantity=Number(f.get('mfgQuantity')),cost=Number(f.get('mfgCost')),transferPrice=Number(f.get('mfgTransferPrice')),price=Number(f.get('mfgPrice')),produced=String(f.get('mfgProducedDate')||date()),expiry=String(f.get('mfgExpiry')||'');
+  openModal('Record production batch','<p class="sub" style="margin:0 0 12px">Enter your own-brand medicine production details.</p><div class="formgrid">'+field('Medicine / brand name','mfgName','e.g. MedCare Paracetamol')+field('Batch number','mfgBatch','Unique batch / lot number')+field('Production date','mfgProducedDate','', 'date',date())+field('Expiry date (optional)','mfgExpiry','', 'date','',false)+field('Quantity produced','mfgQuantity','Whole units','number','100')+field('Manufacturing cost per unit (₹)','mfgCost','Cost to make one unit','number','0')+field('Selling price per unit (₹)','mfgPrice','Price you charge the customer','number','0')+'</div>',f=>{
+   const name=String(f.get('mfgName')||'').trim(),batch=String(f.get('mfgBatch')||'').trim(),quantity=Number(f.get('mfgQuantity')),cost=Number(f.get('mfgCost')),price=Number(f.get('mfgPrice')),produced=String(f.get('mfgProducedDate')||date()),expiry=String(f.get('mfgExpiry')||'');
    if(!name||!batch){showNotice('Enter medicine name and batch number.','error');return}
    if(d.batches.some(b=>b.batch.toLowerCase()===batch.toLowerCase())){showNotice('That batch number already exists. Use a unique batch number.','error');return}
    if(!Number.isInteger(quantity)||quantity<=0){showNotice('Quantity must be a positive whole number.','error');return}
-   if(!Number.isFinite(cost)||cost<0||!Number.isFinite(transferPrice)||transferPrice<cost||!Number.isFinite(price)||price<transferPrice){showNotice('Prices must be valid: transfer price must be at least production cost, and customer price must be at least transfer price.','error');return}
+   if(!Number.isFinite(cost)||cost<0||!Number.isFinite(price)||price<0){showNotice('Manufacturing cost and selling price must be zero or greater.','error');return}
    if(expiry&&expiry<produced){showNotice('Expiry date cannot be earlier than the production date.','error');return}
-   const b={id:'pb-'+Date.now(),name,batch,produced,expiry,quantity,dispatched:0,returned:0,adjusted:0,cost,transferPrice,price};
+   const b={id:'pb-'+Date.now(),name,batch,produced,expiry,quantity,dispatched:0,returned:0,adjusted:0,cost,price};
    d.batches.push(b);d.movements.push({date:produced,type:'Production',batch:b.batch,qty:quantity,note:b.name+'; cost '+money(cost)+'/unit'});closeModal();save();renderMfg();showNotice('Production batch recorded.');
   });
  }
  function dispatch(){
   const d=data(),options=d.batches.filter(b=>available(b)>0);
   if(!options.length){showNotice('Record a production batch with available stock first.','error');return}
-  const batchOptions=options.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.name)+' · Batch '+esc(b.batch)+' · Available '+available(b)+' · '+money(b.price)+'/unit · transfer '+money(b.transferPrice??b.price)+'</option>').join('');
+  const batchOptions=options.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.name)+' · Batch '+esc(b.batch)+' · Available '+available(b)+' · '+money(b.price)+'/unit</option>').join('');
   const invoiceDefault='INV-'+date().replace(/-/g,'')+'-'+(d.invoices.length+1);
   openModal('New distribution dispatch','<p class="sub" style="margin:0 0 12px">Create an invoice for one batch. To dispatch another batch, create another invoice.</p><div class="formgrid">'+field('Customer pharmacy / distributor','mfgCustomer','Customer name')+field('Invoice number','mfgInvoice','Invoice reference','text',invoiceDefault)+field('Dispatch date','mfgDispatchDate','', 'date',date())+'<div class="field"><label for="mfgDispatchBatch">Medicine / batch</label><select id="mfgDispatchBatch" name="mfgDispatchBatch" required>'+batchOptions+'</select></div>'+field('Quantity to dispatch','mfgDispatchQty','Whole units','number','1')+'</div><div class="notice" id="mfgDispatchHint" style="margin-top:10px">Select a batch and enter quantity.</div>',f=>{
    const customer=String(f.get('mfgCustomer')||'').trim(),invoice=String(f.get('mfgInvoice')||'').trim(),dispatchDate=String(f.get('mfgDispatchDate')||date()),b=d.batches.find(x=>x.id===f.get('mfgDispatchBatch')),qty=Number(f.get('mfgDispatchQty'));
    if(!customer||!invoice||!b){showNotice('Complete customer, invoice and batch details.','error');return}
    if(d.invoices.some(i=>i.invoice.toLowerCase()===invoice.toLowerCase())){showNotice('Invoice number already exists.','error');return}
    if(!Number.isInteger(qty)||qty<1||qty>available(b)){showNotice('Quantity must be a whole number within available stock ('+available(b)+').','error');return}
-   const item={batchId:b.id,batch:b.batch,name:b.name,qty,price:Number(b.price)||0,transferPrice:Number(b.transferPrice??b.price)||0,cost:Number(b.cost)||0},total=qty*item.price,id='di-'+Date.now();
+   const item={batchId:b.id,batch:b.batch,name:b.name,qty,price:Number(b.price)||0,cost:Number(b.cost)||0},total=qty*item.price,id='di-'+Date.now();
    b.dispatched=(Number(b.dispatched)||0)+qty;d.invoices.push({id,invoice,customer,date:dispatchDate,items:[item],total,paid:0});
    d.movements.push({date:dispatchDate,type:'Dispatch',batch:b.batch,qty:-qty,note:invoice+' → '+customer});
    closeModal();save();renderMfg();showNotice('Dispatch invoice '+invoice+' recorded. Balance: '+money(total));
@@ -330,9 +327,9 @@ async function deleteAccount(userId){if(!isSuperAdmin||!confirm('Permanently del
    closeModal();save();renderMfg();showNotice('Collection recorded: '+money(amount));
   });
  }
- function exportCsv(){const d=data(),rows=[['Type','Medicine','Batch / Invoice','Date','Expiry','Quantity','Available','Production cost/unit','Transfer price/unit','Customer selling price/unit','Customer','Invoice total','Collected','Balance','Manufacturing profit','Distribution profit']];
-  d.batches.forEach(b=>rows.push(['Production',b.name,b.batch,b.produced,b.expiry,b.quantity,available(b),b.cost,b.transferPrice??b.price,b.price,'','','','','','']));
-  d.invoices.forEach(i=>{const units=i.items.reduce((a,x)=>a+Number(x.qty||0),0),mProfit=i.items.reduce((a,x)=>a+Number(x.qty||0)*((Number(x.transferPrice??x.price)||0)-(Number(x.cost)||0)),0),dProfit=i.items.reduce((a,x)=>a+Number(x.qty||0)*((Number(x.price)||0)-(Number(x.transferPrice??x.price)||0)),0);rows.push(['Distribution','',i.invoice,i.date,'',units,'','','','',i.customer,i.total,i.paid,Math.max(0,i.total-i.paid),mProfit,dProfit])});
+ function exportCsv(){const d=data(),rows=[['Type','Medicine','Batch / Invoice','Date','Expiry','Quantity','Available','Manufacturing cost/unit','Selling price/unit','Customer','Invoice total','Collected','Balance','Sales profit']];
+  d.batches.forEach(b=>rows.push(['Production',b.name,b.batch,b.produced,b.expiry,b.quantity,available(b),b.cost,b.price,'','','','','']));
+  d.invoices.forEach(i=>{const units=i.items.reduce((a,x)=>a+Number(x.qty||0),0),profit=i.items.reduce((a,x)=>a+Number(x.qty||0)*((Number(x.price)||0)-(Number(x.cost)||0)),0);rows.push(['Bulk sale','',i.invoice,i.date,'',units,'','','',i.customer,i.total,i.paid,Math.max(0,i.total-i.paid),profit])});
   const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download='meditrack-manufacturing-distribution.csv';a.click();URL.revokeObjectURL(a.href);
  }
  document.getElementById('addProductionBtn').addEventListener('click',production);
