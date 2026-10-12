@@ -284,43 +284,45 @@ async function deleteAccount(userId){if(!isSuperAdmin||!confirm('Permanently del
   document.getElementById('mfgMovementRows').innerHTML=d.movements.length?d.movements.slice().reverse().map(m=>'<tr><td>'+esc(m.date)+'</td><td>'+esc(m.type)+'</td><td>'+esc(m.batch)+'</td><td>'+esc(m.qty)+'</td><td>'+esc(m.note||'—')+'</td></tr>').join(''):'<tr><td colspan="5">No movements recorded yet.</td></tr>';
  }
  function production(){
-  const name=prompt('Medicine / own brand name:');if(!name||!name.trim())return;
-  const batch=prompt('Unique batch number:');if(!batch||!batch.trim())return;
-  const d=data();if(d.batches.some(b=>b.batch.toLowerCase()===batch.trim().toLowerCase())){showNotice('That batch number already exists. Use a unique batch number.','error');return}
-  const quantity=Number(prompt('Quantity produced (whole units):','100'));if(!Number.isInteger(quantity)||quantity<=0){showNotice('Enter a valid positive whole quantity.','error');return}
-  const cost=Number(prompt('Production cost per unit (₹):','0'));const price=Number(prompt('Distribution selling price per unit (₹):','0'));
-  if(!Number.isFinite(cost)||cost<0||!Number.isFinite(price)||price<0){showNotice('Cost and selling price must be zero or greater.','error');return}
-  const produced=prompt('Production date (YYYY-MM-DD):',date())||date(),expiry=prompt('Expiry date (YYYY-MM-DD, optional):','')||'';
-  const b={id:'pb-'+Date.now(),name:name.trim(),batch:batch.trim(),produced,expiry,quantity,dispatched:0,returned:0,adjusted:0,cost,price};
-  d.batches.push(b);d.movements.push({date:produced,type:'Production',batch:b.batch,qty:quantity,note:b.name+'; cost '+money(cost)+'/unit'});save();renderMfg();showNotice('Production batch recorded.');
+  const d=data();
+  openModal('Record production batch','<p class="sub" style="margin:0 0 12px">Enter your own-brand medicine production details.</p><div class="formgrid">'+field('Medicine / brand name','mfgName','e.g. MedCare Paracetamol')+field('Batch number','mfgBatch','Unique batch / lot number')+field('Production date','mfgProducedDate','', 'date',date())+field('Expiry date (optional)','mfgExpiry','', 'date','',false)+field('Quantity produced','mfgQuantity','Whole units','number','100')+field('Production cost per unit (₹)','mfgCost','Cost for one unit','number','0')+field('Distribution price per unit (₹)','mfgPrice','Selling price per unit','number','0')+'</div>',f=>{
+   const name=String(f.get('mfgName')||'').trim(),batch=String(f.get('mfgBatch')||'').trim(),quantity=Number(f.get('mfgQuantity')),cost=Number(f.get('mfgCost')),price=Number(f.get('mfgPrice')),produced=String(f.get('mfgProducedDate')||date()),expiry=String(f.get('mfgExpiry')||'');
+   if(!name||!batch){showNotice('Enter medicine name and batch number.','error');return}
+   if(d.batches.some(b=>b.batch.toLowerCase()===batch.toLowerCase())){showNotice('That batch number already exists. Use a unique batch number.','error');return}
+   if(!Number.isInteger(quantity)||quantity<=0){showNotice('Quantity must be a positive whole number.','error');return}
+   if(!Number.isFinite(cost)||cost<0||!Number.isFinite(price)||price<0){showNotice('Cost and selling price must be zero or greater.','error');return}
+   if(expiry&&expiry<produced){showNotice('Expiry date cannot be earlier than the production date.','error');return}
+   const b={id:'pb-'+Date.now(),name,batch,produced,expiry,quantity,dispatched:0,returned:0,adjusted:0,cost,price};
+   d.batches.push(b);d.movements.push({date:produced,type:'Production',batch:b.batch,qty:quantity,note:b.name+'; cost '+money(cost)+'/unit'});closeModal();save();renderMfg();showNotice('Production batch recorded.');
+  });
  }
  function dispatch(){
-  const d=data();if(!d.batches.some(b=>available(b)>0)){showNotice('Record a production batch with available stock first.','error');return}
-  const customer=prompt('Customer pharmacy / distributor name:');if(!customer||!customer.trim())return;
-  const invoice=prompt('Invoice number:', 'INV-'+date().replace(/-/g,'')+'-'+(d.invoices.length+1));if(!invoice||!invoice.trim())return;
-  if(d.invoices.some(i=>i.invoice.toLowerCase()===invoice.trim().toLowerCase())){showNotice('Invoice number already exists.','error');return}
-  const items=[];let keep=true;
-  while(keep){const options=d.batches.filter(b=>available(b)>0);if(!options.length)break;
-   const listing=options.map((b,n)=>(n+1)+'. '+b.name+' | batch '+b.batch+' | available '+available(b)+' | '+money(b.price)+'/unit').join('\n');
-   const chosen=Number(prompt('Choose batch number to dispatch:\n'+listing+'\nEnter 1-'+options.length+' (Cancel to finish)', '1'));if(!Number.isInteger(chosen)||chosen<1||chosen>options.length)break;
-   const b=options[chosen-1],qty=Number(prompt('Quantity for '+b.name+' / '+b.batch+' (available '+available(b)+')','1'));
-   if(!Number.isInteger(qty)||qty<1||qty>available(b)){showNotice('Quantity must be a whole number within available stock.','error');continue}
-   b.dispatched=(Number(b.dispatched)||0)+qty;items.push({batchId:b.id,batch:b.batch,name:b.name,qty,price:Number(b.price)||0,cost:Number(b.cost)||0});
-   keep=confirm('Added '+qty+' units of '+b.name+'. Add another batch to this invoice?');
-  }
-  if(!items.length){showNotice('No items dispatched; no invoice was created.','error');return}
-  const total=items.reduce((a,x)=>a+x.qty*x.price,0),id='di-'+Date.now();
-  d.invoices.push({id,invoice:invoice.trim(),customer:customer.trim(),date:date(),items,total,paid:0});
-  items.forEach(x=>d.movements.push({date:date(),type:'Dispatch',batch:x.batch,qty:-x.qty,note:invoice.trim()+' → '+customer.trim()}));
-  save();renderMfg();showNotice('Dispatch invoice '+invoice+' recorded. Balance: '+money(total));
+  const d=data(),options=d.batches.filter(b=>available(b)>0);
+  if(!options.length){showNotice('Record a production batch with available stock first.','error');return}
+  const batchOptions=options.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.name)+' · Batch '+esc(b.batch)+' · Available '+available(b)+' · '+money(b.price)+'/unit</option>').join('');
+  const invoiceDefault='INV-'+date().replace(/-/g,'')+'-'+(d.invoices.length+1);
+  openModal('New distribution dispatch','<p class="sub" style="margin:0 0 12px">Create an invoice for one batch. To dispatch another batch, create another invoice.</p><div class="formgrid">'+field('Customer pharmacy / distributor','mfgCustomer','Customer name')+field('Invoice number','mfgInvoice','Invoice reference','text',invoiceDefault)+field('Dispatch date','mfgDispatchDate','', 'date',date())+'<div class="field"><label for="mfgDispatchBatch">Medicine / batch</label><select id="mfgDispatchBatch" name="mfgDispatchBatch" required>'+batchOptions+'</select></div>'+field('Quantity to dispatch','mfgDispatchQty','Whole units','number','1')+'</div><div class="notice" id="mfgDispatchHint" style="margin-top:10px">Select a batch and enter quantity.</div>',f=>{
+   const customer=String(f.get('mfgCustomer')||'').trim(),invoice=String(f.get('mfgInvoice')||'').trim(),dispatchDate=String(f.get('mfgDispatchDate')||date()),b=d.batches.find(x=>x.id===f.get('mfgDispatchBatch')),qty=Number(f.get('mfgDispatchQty'));
+   if(!customer||!invoice||!b){showNotice('Complete customer, invoice and batch details.','error');return}
+   if(d.invoices.some(i=>i.invoice.toLowerCase()===invoice.toLowerCase())){showNotice('Invoice number already exists.','error');return}
+   if(!Number.isInteger(qty)||qty<1||qty>available(b)){showNotice('Quantity must be a whole number within available stock ('+available(b)+').','error');return}
+   const item={batchId:b.id,batch:b.batch,name:b.name,qty,price:Number(b.price)||0,cost:Number(b.cost)||0},total=qty*item.price,id='di-'+Date.now();
+   b.dispatched=(Number(b.dispatched)||0)+qty;d.invoices.push({id,invoice,customer,date:dispatchDate,items:[item],total,paid:0});
+   d.movements.push({date:dispatchDate,type:'Dispatch',batch:b.batch,qty:-qty,note:invoice+' → '+customer});
+   closeModal();save();renderMfg();showNotice('Dispatch invoice '+invoice+' recorded. Balance: '+money(total));
+  });
+  const updateHint=()=>{const b=d.batches.find(x=>x.id===document.getElementById('mfgDispatchBatch')?.value),q=Number(document.getElementById('mfgDispatchQty')?.value||0),hint=document.getElementById('mfgDispatchHint');if(b&&hint)hint.textContent='Available: '+available(b)+' units · Unit price: '+money(b.price)+' · Invoice total: '+money(q*(Number(b.price)||0));};
+  document.getElementById('mfgDispatchBatch').addEventListener('change',updateHint);document.getElementById('mfgDispatchQty').addEventListener('input',updateHint);updateHint();
  }
  function collect(invoiceId){
   const d=data(),i=d.invoices.find(x=>x.id===invoiceId);if(!i)return;
   const balance=Math.max(0,Number(i.total)-Number(i.paid));if(!balance){showNotice('This invoice is already fully paid.');return}
-  const amount=Number(prompt('Collection amount for '+i.invoice+' (balance '+money(balance)+'):',String(balance)));if(!Number.isFinite(amount)||amount<=0||amount>balance){showNotice('Enter an amount greater than zero and no more than the balance.','error');return}
-  const method=prompt('Payment method (Cash / Bank / UPI):','Bank')||'Unspecified';
-  i.paid=(Number(i.paid)||0)+amount;d.collections.push({id:'col-'+Date.now(),invoiceId:i.id,invoice:i.invoice,customer:i.customer,date:date(),amount,method});
-  save();renderMfg();showNotice('Collection recorded: '+money(amount));
+  openModal('Record customer payment','<p class="sub" style="margin:0 0 12px">Invoice '+esc(i.invoice)+' · '+esc(i.customer)+' · Outstanding '+money(balance)+'</p><div class="formgrid">'+field('Payment date','mfgPaymentDate','', 'date',date())+field('Amount received (₹)','mfgPaymentAmount','Amount','number',String(balance))+ '<div class="field"><label for="mfgPaymentMethod">Payment method</label><select id="mfgPaymentMethod" name="mfgPaymentMethod"><option>Bank transfer</option><option>UPI</option><option>Cash</option><option>Cheque</option><option>Other</option></select></div></div>',f=>{
+   const amount=Number(f.get('mfgPaymentAmount')),paymentDate=String(f.get('mfgPaymentDate')||date()),method=String(f.get('mfgPaymentMethod')||'Other');
+   if(!Number.isFinite(amount)||amount<=0||amount>balance){showNotice('Enter an amount greater than zero and no more than '+money(balance)+'.','error');return}
+   i.paid=(Number(i.paid)||0)+amount;d.collections.push({id:'col-'+Date.now(),invoiceId:i.id,invoice:i.invoice,customer:i.customer,date:paymentDate,amount,method});
+   closeModal();save();renderMfg();showNotice('Collection recorded: '+money(amount));
+  });
  }
  function exportCsv(){const d=data(),rows=[['Type','Medicine','Batch / Invoice','Date','Expiry','Quantity','Available','Cost per unit','Sell per unit','Customer','Invoice total','Collected','Balance']];
   d.batches.forEach(b=>rows.push(['Production',b.name,b.batch,b.produced,b.expiry,b.quantity,available(b),b.cost,b.price,'','','','']));
@@ -329,7 +331,7 @@ async function deleteAccount(userId){if(!isSuperAdmin||!confirm('Permanently del
  }
  document.getElementById('addProductionBtn').addEventListener('click',production);
  document.getElementById('addDispatchBtn').addEventListener('click',dispatch);
- document.getElementById('addCollectionBtn').addEventListener('click',()=>{const d=data();if(!d.invoices.length){showNotice('Create a dispatch invoice first.','error');return}const list=d.invoices.map((i,n)=>(n+1)+'. '+i.invoice+' — '+i.customer+' — balance '+money(i.total-i.paid)).join('\n');const n=Number(prompt('Choose invoice for collection:\n'+list,'1'));if(Number.isInteger(n)&&n>=1&&n<=d.invoices.length)collect(d.invoices[n-1].id)});
+ document.getElementById('addCollectionBtn').addEventListener('click',()=>{const d=data(),open=d.invoices.filter(i=>Number(i.total)>Number(i.paid));if(!open.length){showNotice('No outstanding invoices to collect.','error');return}const options=open.map(i=>'<option value="'+esc(i.id)+'">'+esc(i.invoice)+' · '+esc(i.customer)+' · Due '+money(i.total-i.paid)+'</option>').join('');openModal('Record customer payment','<div class="formgrid"><div class="field"><label for="mfgCollectionInvoice">Invoice</label><select id="mfgCollectionInvoice" name="mfgCollectionInvoice" required>'+options+'</select></div></div>',f=>{const i=d.invoices.find(x=>x.id===f.get('mfgCollectionInvoice'));closeModal();if(i)collect(i.id)});});
  document.getElementById('mfgInvoiceRows').addEventListener('click',e=>{const b=e.target.closest('.mfg-collect');if(b)collect(b.dataset.id)});
  document.getElementById('exportMfgBtn').addEventListener('click',exportCsv);
  document.querySelectorAll('[data-page="manufacturing"]').forEach(b=>b.addEventListener('click',renderMfg));
