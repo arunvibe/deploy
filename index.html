@@ -76,6 +76,20 @@ input:focus,select:focus,textarea:focus{border-color:#7da1fa!important;box-shado
 @media(max-width:1000px){.shell{grid-template-columns:215px minmax(0,1fr)}.content{padding:24px 20px}.topbar{padding:0 20px}.panel{padding:18px}}
 @media(max-width:650px){.shell{display:block}.sidebar{padding:11px 12px;background:#fff;box-shadow:0 3px 12px #20365b08}.brand{font-size:17px}.nav button{border-radius:9px;padding:8px 10px}.topbar{height:54px;padding:0 14px}.content{padding:19px 12px 30px}.pagehead h1{font-size:23px}.metrics{gap:9px}.metric{padding:13px;border-radius:13px}.metricvalue,.metric strong{font-size:22px}.panel{padding:13px;border-radius:13px}.toolbar{align-items:flex-start;flex-wrap:wrap}.toolbarleft{flex-wrap:wrap}.modal{padding:19px;border-radius:16px}}
 
+
+/* Business analytics */
+.analytics-panel{padding:23px}.analytics-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.analytics-filters select{min-width:145px}.analytics-filters input[type=date]{width:145px;padding:9px!important}
+.analytics-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:21px 0 26px}
+.analytics-stat{border:1px solid #e7edf5;border-radius:12px;padding:14px;background:linear-gradient(145deg,#fbfcff,#fff);min-width:0}
+.analytics-stat span{display:block;color:#78869b;font-size:11px;font-weight:650;margin-bottom:7px}.analytics-stat strong{font-size:20px;letter-spacing:-.5px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.analytics-chart-head,.analytics-report-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 12px}.analytics-chart-head h3,.analytics-report-head h3{margin:0;font-size:14px;font-weight:800}.analytics-chart-head p,.analytics-report-head p{margin:4px 0 0;font-size:11px}
+.chart-legend{display:flex;gap:12px;color:#78869b;font-size:11px}.chart-legend span{display:flex;align-items:center;gap:5px}.chart-legend i{display:inline-block;width:9px;height:9px;border-radius:3px}.legend-sales{background:#3867e8}.legend-profit{background:#19a779}
+.analytics-chart{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;align-items:end;min-height:175px;padding:18px 12px 8px;border:1px solid #e9eef6;border-radius:13px;background:repeating-linear-gradient(to top,#fff 0,#fff 39px,#f0f3f8 40px)}
+.analytics-month{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;height:100%;justify-content:flex-end}.analytics-bars{height:112px;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:5px}.analytics-bar{width:min(25px,35%);min-width:7px;border-radius:5px 5px 2px 2px;min-height:3px;position:relative}.analytics-bar.sales{background:linear-gradient(180deg,#5b83f0,#315fe0)}.analytics-bar.profit{background:linear-gradient(180deg,#49c99a,#12966d)}.analytics-bar[title]{cursor:help}.analytics-month label{font-size:10px;color:#78869b;white-space:nowrap}.analytics-month small{font-size:10px;color:#52627b;font-variant-numeric:tabular-nums}
+.analytics-empty{grid-column:1/-1;align-self:center;text-align:center;color:#8591a5;font-size:12px;padding:30px 0}
+@media(max-width:900px){.analytics-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-chart{gap:7px;padding-left:7px;padding-right:7px}.analytics-bars{gap:3px}}
+@media(max-width:650px){.analytics-panel{padding:14px}.analytics-toolbar{display:flex}.analytics-filters{width:100%}.analytics-filters select{flex:1;min-width:130px}.analytics-filters input[type=date]{width:calc(50% - 5px)}.analytics-summary{gap:8px;margin:15px 0 20px}.analytics-stat{padding:11px}.analytics-stat strong{font-size:17px}.analytics-chart{gap:4px;min-height:145px;padding:12px 5px 7px}.analytics-bars{height:90px}.analytics-month label{font-size:9px}.chart-legend{font-size:10px}.analytics-chart-head{flex-wrap:wrap}}
+
 </style>
 </head>
 <body>
@@ -110,6 +124,20 @@ input:focus,select:focus,textarea:focus{border-color:#7da1fa!important;box-shado
 <div class="metric"><div class="metrichead">Total units in stock <span class="metricicon">▦</span></div><strong id="metricUnits">0</strong><small>Across all medicine batches</small></div>
 <div class="metric"><div class="metrichead">Low stock alerts <span class="metricicon" style="background:var(--amberbg);color:var(--amber)">⚠</span></div><strong id="metricLow">0</strong><small class="warn">At or below minimum level</small></div>
 <div class="metric"><div class="metrichead">Patients served <span class="metricicon" style="background:var(--greenbg);color:var(--green)">♙</span></div><strong id="metricPatients">0</strong><small>Unique patient names</small></div>
+</div>
+<div class="panel analytics-panel" style="margin-bottom:18px">
+ <div class="toolbar analytics-toolbar"><div><h2 style="margin:0;font-size:17px">Business analytics</h2><p class="sub" style="font-size:12px;margin-top:4px">Pharmacy sales and your bulk manufacturing sales, with profit based on dispatched quantities.</p></div>
+ <div class="analytics-filters"><select id="analyticsRange" aria-label="Analytics date range"><option value="30">Last 30 days</option><option value="month">This month</option><option value="year">This year</option><option value="all">All time</option><option value="custom">Custom range</option></select><input id="analyticsStart" type="date" aria-label="Start date" class="hidden"><input id="analyticsEnd" type="date" aria-label="End date" class="hidden"><button class="btn" id="exportAnalyticsBtn">Export report</button></div></div>
+ <div class="analytics-summary">
+  <div class="analytics-stat"><span>Sales revenue</span><strong id="analyticsRevenue">₹0.00</strong></div>
+  <div class="analytics-stat"><span>Gross profit</span><strong id="analyticsProfit">₹0.00</strong></div>
+  <div class="analytics-stat"><span>Manufacturing bulk profit</span><strong id="analyticsMfgProfit">₹0.00</strong></div>
+  <div class="analytics-stat"><span>Outstanding bulk invoices</span><strong id="analyticsReceivable">₹0.00</strong></div>
+ </div>
+ <div class="analytics-chart-head"><div><h3>Sales and profit trend</h3><p class="sub">Monthly totals for the selected period</p></div><div class="chart-legend"><span><i class="legend-sales"></i> Sales</span><span><i class="legend-profit"></i> Profit</span></div></div>
+ <div id="analyticsChart" class="analytics-chart" aria-live="polite"></div>
+ <div class="analytics-report-head"><div><h3>Profit breakdown</h3><p class="sub">Compare pharmacy issues with bulk manufacturing sales</p></div></div>
+ <div class="tablewrap"><table><thead><tr><th>Business area</th><th>Sales</th><th>Cost</th><th>Gross profit</th><th>Collected</th><th>Outstanding</th></tr></thead><tbody id="analyticsRows"></tbody></table></div>
 </div>
 <div class="grid2">
 <div class="panel"><div class="panelhead"><div><h2>Medicine stock</h2><p>Quick view of current availability</p></div><button class="linkbtn" data-goto="inventory">View inventory →</button></div><div class="tablewrap"><table><thead><tr><th>Medicine</th><th>Stock level</th><th>Status</th></tr></thead><tbody id="dashStock"></tbody></table></div></div>
@@ -242,7 +270,54 @@ document.getElementById('distributorRows').innerHTML=Object.entries(distributors
 const pq=document.getElementById('purchaseSearch')?.value.toLowerCase()||'';const purchases=(state.purchases||[]).slice().sort((a,b)=>b.createdAt-a.createdAt).filter(p=>(p.distributor+' '+p.medicine+' '+p.invoice+' '+p.batch).toLowerCase().includes(pq));
 document.getElementById('purchaseRows').innerHTML=purchases.map(p=>'<tr><td>'+stampText(p.createdAt)+'</td><td><b>'+esc(p.distributor)+'</b><span class="subtext">'+esc(p.invoice||'No invoice')+'</span></td><td>'+esc(p.medicine)+'<span class="subtext">Batch '+esc(p.batch||'—')+(p.expiry?' · Exp. '+dateText(p.expiry):' · No expiry entered')+'</span></td><td><b>'+p.quantity+'</b></td><td>₹'+Number(p.unitCost||0).toFixed(2)+'</td><td>₹'+Number(p.mrp||0).toFixed(2)+'</td><td>₹'+(Number(p.quantity)*Number(p.unitCost||0)).toFixed(2)+'</td></tr>').join('')||emptyRow(6,'No purchases recorded yet');
 const supplierNames=[...new Set([...(state.distributors||[]).map(d=>d.name),...(state.purchases||[]).map(p=>p.distributor),...state.medicines.map(m=>m.distributor).filter(n=>n&&n!=='Opening stock')])].filter(Boolean).sort((a,b)=>a.localeCompare(b));document.getElementById('directoryRows').innerHTML=(state.distributors||[]).slice().sort((a,b)=>a.name.localeCompare(b.name)).map(d=>'<tr><td><b>'+esc(d.name)+'</b></td><td>'+esc(d.phone||'—')+'</td><td>'+esc(d.gstin||'—')+'</td><td>'+esc(d.address||'—')+'</td><td>₹'+Number(d.openingBalance||0).toFixed(2)+'</td></tr>').join('')||emptyRow(5,'No saved distributors yet. Add a supplier to build your directory.');const payTotals={};supplierNames.forEach(n=>payTotals[n]={purchase:0,payments:0,opening:Number((state.distributors||[]).find(d=>d.name===n)?.openingBalance)||0});(state.purchases||[]).forEach(p=>{if(!payTotals[p.distributor])payTotals[p.distributor]={purchase:0,payments:0,opening:0};payTotals[p.distributor].purchase+=Number(p.quantity||0)*Number(p.unitCost||0)});(state.distributorPayments||[]).forEach(p=>{if(!payTotals[p.distributor])payTotals[p.distributor]={purchase:0,payments:0,opening:0};payTotals[p.distributor].payments+=Number(p.amount||0)});document.getElementById('paymentBalanceRows').innerHTML=Object.entries(payTotals).sort((a,b)=>a[0].localeCompare(b[0])).map(([n,v])=>'<tr><td><b>'+esc(n)+'</b></td><td>₹'+v.purchase.toFixed(2)+'</td><td>₹'+v.opening.toFixed(2)+'</td><td>₹'+v.payments.toFixed(2)+'</td><td><b>₹'+(v.purchase+v.opening-v.payments).toFixed(2)+'</b></td></tr>').join('')||emptyRow(5,'No distributor activity recorded yet.');document.getElementById('paymentRows').innerHTML=(state.distributorPayments||[]).slice().sort((a,b)=>b.createdAt-a.createdAt).map(p=>'<tr><td>'+stampText(p.createdAt)+'</td><td><b>'+esc(p.distributor)+'</b></td><td>₹'+Number(p.amount||0).toFixed(2)+'</td><td>'+esc(p.method||'—')+'</td><td>'+esc(p.reference||'—')+'</td></tr>').join('')||emptyRow(5,'No payments recorded yet');
+renderAnalytics();
 }
+
+function renderAnalytics(){
+ const range=document.getElementById('analyticsRange');if(!range)return;
+ const startInput=document.getElementById('analyticsStart'),endInput=document.getElementById('analyticsEnd'),today=new Date(),todayStr=today.toISOString().slice(0,10);
+ let start=new Date(today);start.setHours(0,0,0,0);let end=new Date(today);end.setHours(23,59,59,999);
+ if(range.value==='30')start.setDate(start.getDate()-29);
+ else if(range.value==='month')start=new Date(today.getFullYear(),today.getMonth(),1);
+ else if(range.value==='year')start=new Date(today.getFullYear(),0,1);
+ else if(range.value==='all')start=new Date('2000-01-01T00:00:00');
+ else {start=new Date((startInput.value||todayStr)+'T00:00:00');end=new Date((endInput.value||todayStr)+'T23:59:59.999');}
+ startInput.classList.toggle('hidden',range.value!=='custom');endInput.classList.toggle('hidden',range.value!=='custom');
+ const startStr=start.toISOString().slice(0,10),endStr=end.toISOString().slice(0,10);
+ const inRange=day=>!!day&&day>=startStr&&day<=endStr;
+ const issueDate=i=>{const t=Number(i.createdAt)||0;return t?new Date(t).toISOString().slice(0,10):''};
+ const pharmacy=state.issues.filter(i=>inRange(issueDate(i)));
+ const paidIssues=pharmacy.filter(i=>['sale','gpay','cash'].includes(i.issueType));
+ const pharmacySales=paidIssues.reduce((a,i)=>a+Number(i.revenueTotal||0),0);
+ const pharmacyCost=paidIssues.reduce((a,i)=>a+Number(i.costTotal||0),0);
+ const pharmacyProfit=paidIssues.reduce((a,i)=>a+Number(i.profitTotal||0),0);
+ const mfg=(state.manufacturing&&Array.isArray(state.manufacturing.invoices)?state.manufacturing.invoices:[]).filter(i=>inRange(i.date));
+ const mfgSales=mfg.reduce((a,i)=>a+Number(i.total||0),0);
+ const mfgCost=mfg.reduce((a,i)=>a+(i.items||[]).reduce((n,x)=>n+Number(x.qty||0)*Number(x.cost||0),0),0);
+ const mfgProfit=mfgSales-mfgCost;
+ const mfgPaid=mfg.reduce((a,i)=>a+Number(i.paid||0),0);
+ const receivable=mfg.reduce((a,i)=>a+Math.max(0,Number(i.total||0)-Number(i.paid||0)),0);
+ document.getElementById('analyticsRevenue').textContent='₹'+(pharmacySales+mfgSales).toFixed(2);
+ document.getElementById('analyticsProfit').textContent='₹'+(pharmacyProfit+mfgProfit).toFixed(2);
+ document.getElementById('analyticsMfgProfit').textContent='₹'+mfgProfit.toFixed(2);
+ document.getElementById('analyticsReceivable').textContent='₹'+receivable.toFixed(2);
+ const rows=[['Pharmacy sales',pharmacySales,pharmacyCost,pharmacyProfit,pharmacySales,0],['Manufacturing bulk sales',mfgSales,mfgCost,mfgProfit,mfgPaid,receivable]];
+ document.getElementById('analyticsRows').innerHTML=rows.map(r=>'<tr><td><b>'+r[0]+'</b></td><td>₹'+r[1].toFixed(2)+'</td><td>₹'+r[2].toFixed(2)+'</td><td><b>₹'+r[3].toFixed(2)+'</b></td><td>₹'+r[4].toFixed(2)+'</td><td>₹'+r[5].toFixed(2)+'</td></tr>').join('');
+ const monthMap={};const add=(day,sales,profit)=>{if(!day)return;const key=day.slice(0,7);if(!monthMap[key])monthMap[key]={sales:0,profit:0};monthMap[key].sales+=sales;monthMap[key].profit+=profit};
+ paidIssues.forEach(i=>add(issueDate(i),Number(i.revenueTotal||0),Number(i.profitTotal||0)));
+ mfg.forEach(i=>add(i.date,Number(i.total||0),Number(i.total||0)-(i.items||[]).reduce((n,x)=>n+Number(x.qty||0)*Number(x.cost||0),0)));
+ let months=Object.keys(monthMap).sort();if(months.length>6)months=months.slice(-6);
+ if(!months.length&&range.value!=='all'){const cur=new Date(start.getFullYear(),start.getMonth(),1);const last=new Date(end.getFullYear(),end.getMonth(),1);for(let d=new Date(cur);d<=last&&months.length<12;d.setMonth(d.getMonth()+1))months.push(d.toISOString().slice(0,7))}
+ const max=Math.max(1,...months.flatMap(k=>[monthMap[k]?.sales||0,monthMap[k]?.profit||0]));
+ document.getElementById('analyticsChart').innerHTML=months.length?months.map(k=>{const d=monthMap[k]||{sales:0,profit:0},sh=Math.max(3,d.sales/max*100),ph=Math.max(3,d.profit/max*100),label=new Date(k+'-01T00:00:00').toLocaleDateString('en-IN',{month:'short',year:'2-digit'});return '<div class="analytics-month"><div class="analytics-bars"><div class="analytics-bar sales" style="height:'+sh+'%" title="Sales ₹'+d.sales.toFixed(2)+'"></div><div class="analytics-bar profit" style="height:'+ph+'%" title="Profit ₹'+d.profit.toFixed(2)+'"></div></div><small>₹'+Math.round(d.sales).toLocaleString('en-IN')+'</small><label>'+label+'</label></div>'}).join(''):'<div class="analytics-empty">No sales recorded for this period yet.</div>';
+}
+function exportAnalytics(){
+ const range=document.getElementById('analyticsRange');if(!range)return;renderAnalytics();
+ const rows=[['Business area','Sales','Cost','Gross profit','Collected','Outstanding']];
+ document.querySelectorAll('#analyticsRows tr').forEach(tr=>rows.push([...tr.querySelectorAll('td')].map(td=>td.textContent.trim())));
+ downloadCsv(rows,'meditrack-profit-report.csv');
+}
+
 function emptyRow(n,msg){return '<tr><td colspan="'+n+'"><div class="empty">'+esc(msg)+'</div></td></tr>'}
 function closeModal(){document.getElementById('modalRoot').innerHTML=''}
 function openModal(title,body,onSubmit,submitText='Save'){
@@ -330,6 +405,7 @@ async function deleteAccount(userId){if(!isSuperAdmin||!confirm('Permanently del
   document.getElementById('mfgStock').textContent=batches.reduce((a,b)=>a+available(b),0).toLocaleString();
   document.getElementById('mfgSales').textContent=money(invoices.reduce((a,i)=>a+Number(i.total||0),0));
   document.getElementById('mfgReceivable').textContent=money(invoices.reduce((a,i)=>a+Math.max(0,Number(i.total||0)-Number(i.paid||0)),0));
+  renderAnalytics();
   const salesProfit=invoices.reduce((sum,i)=>sum+i.items.reduce((n,x)=>n+Number(x.qty||0)*((Number(x.price)||0)-(Number(x.cost)||0)),0),0);
   document.getElementById('mfgSalesProfit').textContent=money(salesProfit);
   document.getElementById('mfgBatchRows').innerHTML=batches.length?batches.map(b=>'<tr><td>'+esc(b.name)+'</td><td>'+esc(b.batch)+'</td><td>'+esc(b.produced)+'</td><td>'+esc(b.expiry||'—')+'</td><td>'+Number(b.quantity)+'</td><td><strong>'+available(b)+'</strong></td><td>'+money(b.cost)+'</td><td>'+money(b.price)+'</td></tr>').join(''):'<tr><td colspan="8">No production batches yet. Select “Record production” to add your first batch.</td></tr>';
@@ -382,7 +458,11 @@ async function deleteAccount(userId){if(!isSuperAdmin||!confirm('Permanently del
   d.invoices.forEach(i=>{const units=i.items.reduce((a,x)=>a+Number(x.qty||0),0),profit=i.items.reduce((a,x)=>a+Number(x.qty||0)*((Number(x.price)||0)-(Number(x.cost)||0)),0);rows.push(['Bulk sale','',i.invoice,i.date,'',units,'','','',i.customer,i.total,i.paid,Math.max(0,i.total-i.paid),profit])});
   const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download='meditrack-manufacturing-distribution.csv';a.click();URL.revokeObjectURL(a.href);
  }
- document.getElementById('addProductionBtn').addEventListener('click',production);
+ document.getElementById('analyticsRange')?.addEventListener('change',renderAnalytics);
+document.getElementById('analyticsStart')?.addEventListener('change',renderAnalytics);
+document.getElementById('analyticsEnd')?.addEventListener('change',renderAnalytics);
+document.getElementById('exportAnalyticsBtn')?.addEventListener('click',exportAnalytics);
+document.getElementById('addProductionBtn').addEventListener('click',production);
  document.getElementById('addDispatchBtn').addEventListener('click',dispatch);
  document.getElementById('addCollectionBtn').addEventListener('click',()=>{const d=data(),open=d.invoices.filter(i=>Number(i.total)>Number(i.paid));if(!open.length){showNotice('No outstanding invoices to collect.','error');return}const options=open.map(i=>'<option value="'+esc(i.id)+'">'+esc(i.invoice)+' · '+esc(i.customer)+' · Due '+money(i.total-i.paid)+'</option>').join('');openModal('Record customer payment','<div class="formgrid"><div class="field"><label for="mfgCollectionInvoice">Invoice</label><select id="mfgCollectionInvoice" name="mfgCollectionInvoice" required>'+options+'</select></div></div>',f=>{const i=d.invoices.find(x=>x.id===f.get('mfgCollectionInvoice'));closeModal();if(i)collect(i.id)});});
  document.getElementById('mfgInvoiceRows').addEventListener('click',e=>{const b=e.target.closest('.mfg-collect');if(b)collect(b.dataset.id)});
