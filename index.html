@@ -63,7 +63,7 @@
 </div>
 <div class="grid2">
 <div class="panel"><div class="panelhead"><div><h2>Medicine stock</h2><p>Quick view of current availability</p></div><button class="linkbtn" data-goto="inventory">View inventory →</button></div><div class="tablewrap"><table><thead><tr><th>Medicine</th><th>Stock level</th><th>Status</th></tr></thead><tbody id="dashStock"></tbody></table></div></div>
-<div class="panel"><div class="panelhead"><div><h2>Recent activity</h2><p>Latest medicine issues</p></div><button class="linkbtn" data-goto="history">View all →</button></div><div class="activity" id="recentActivity"></div></div>
+<div class="panel"><div class="panelhead"><div><h2>Low stock medicines</h2><p>Medicines at or below their minimum stock level</p></div><button class="linkbtn" data-goto="inventory">View inventory →</button></div><div class="tablewrap"><table><thead><tr><th>Medicine</th><th>Available</th><th>Minimum</th><th>Status</th></tr></thead><tbody id="dashLowStock"></tbody></table></div></div>
 </div>
 </section>
 <section id="inventoryPage" class="hidden">
@@ -172,8 +172,8 @@ document.getElementById('metricFreeCost').textContent='₹'+state.issues.filter(
 const consultVisits=new Map();state.issues.forEach(i=>{const key=i.visitId||i.visitRef||('LEGACY-'+i.id);if(!consultVisits.has(key))consultVisits.set(key,Number(i.consultationFee)||0)});const consultRevenue=[...consultVisits.values()].reduce((a,v)=>a+v,0);document.getElementById('metricConsultCount').textContent=String(consultVisits.size);document.getElementById('metricConsultProfit').textContent='₹'+consultRevenue.toFixed(2);
 const sorted=[...state.medicines].sort((a,b)=>(a.stock<=a.min?0:1)-(b.stock<=b.min?0:1)||a.name.localeCompare(b.name));
 document.getElementById('dashStock').innerHTML=sorted.slice(0,6).map(m=>'<tr><td><span class="medname">'+esc(m.name)+'</span><span class="subtext">'+esc(m.category)+' · '+esc(m.batch)+' · '+esc(m.distributor||'Opening stock')+'</span></td><td><b>'+m.stock+'</b><div class="stockbar"><i class="'+(m.stock<=m.min?'lowbar':'')+'" style="width:'+Math.min(100,m.stock/Math.max(1,m.min*3)*100)+'%"></i></div></td><td>'+badge(m)+'</td></tr>').join('')||emptyRow(3,'No medicines added yet');
-const recent=state.issues.slice().sort((a,b)=>b.createdAt-a.createdAt).slice(0,5);
-document.getElementById('recentActivity').innerHTML=recent.map(i=>'<div class="activityrow"><div class="activityicon">↗</div><div><strong>'+esc(i.patient)+'</strong><span>'+esc(i.quantity)+' × '+esc(i.medicine)+'</span></div><time>'+stampText(i.createdAt)+'</time></div>').join('')||'<div class="empty"><b>No activity yet</b>Issue a medicine to a patient to see it here.</div>';
+const dashboardLow=state.medicines.filter(m=>Number(m.stock)<=Number(m.min)).sort((a,b)=>(Number(a.stock)-Number(a.min))-(Number(b.stock)-Number(b.min))).slice(0,8);
+document.getElementById('dashLowStock').innerHTML=dashboardLow.map(m=>'<tr><td><span class="medname">'+esc(m.name)+'</span><span class="subtext">'+esc(m.category)+' · '+esc(m.batch)+'</span></td><td><b>'+Number(m.stock)+'</b></td><td>'+Number(m.min)+'</td><td>'+badge(m)+'</td></tr>').join('')||'<tr><td colspan="4"><div class="empty"><b>All stocked up!</b>No medicines are currently at or below their minimum level.</div></td></tr>';
 const ms=document.getElementById('medicineSearch')?.value.toLowerCase()||'';
 const lowStockOnly=document.getElementById('lowStockToggle')?.dataset.active==='true';
 const filtered=state.medicines.filter(m=>(m.name+' '+m.batch+' '+m.category).toLowerCase().includes(ms)&&(!lowStockOnly||Number(m.stock)<=Number(m.min)));
