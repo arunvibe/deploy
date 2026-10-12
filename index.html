@@ -26,6 +26,56 @@
 #signOutBtn{padding:7px 10px;font-size:11px;margin-left:8px}
 @media(max-width:650px){.cloudcard{padding:22px}.cloudcard h1{font-size:22px}.user .avatar{display:none}#signOutBtn{padding:6px 8px}}
 
+
+/* Professional MediTrack visual refresh */
+:root{--ink:#14213d;--muted:#66758b;--line:#e4eaf2;--bg:#f3f6fb;--white:#fff;--blue:#2563eb;--blue2:#eaf1ff;--green:#087f5b;--greenbg:#e6f7ef;--amber:#9a6700;--amberbg:#fff5d8;--red:#b42336;--redbg:#ffebee;--shadow:0 10px 32px rgba(25,45,80,.055)}
+body{background:radial-gradient(ellipse at 70% -15%,#e9f0ff 0,transparent 38%),var(--bg);color:var(--ink);letter-spacing:.005em}
+.shell{grid-template-columns:250px minmax(0,1fr)}
+.sidebar{background:linear-gradient(180deg,#fff 0%,#f9fbff 100%);border-right:1px solid #dfe7f2;padding:25px 17px;gap:30px}
+.brand{font-size:19px;letter-spacing:-.7px}.brand .logo,.cloudbrand .logo{background:linear-gradient(135deg,#2563eb,#4f46e5);box-shadow:0 5px 14px #315efb35}
+.navlabel{font-size:10px;letter-spacing:1.5px;color:#8997ad}
+.nav{gap:6px}.nav button{border-radius:11px;padding:11px 12px;font-weight:550;transition:background .16s ease,color .16s ease,transform .16s ease}
+.nav button:hover{background:#f0f5ff;color:#1d4ed8;transform:translateX(2px)}
+.nav button.active{background:linear-gradient(100deg,#eaf1ff,#f2f5ff);color:#2456d8;box-shadow:inset 3px 0 #315efb;font-weight:750}
+.nav button .ico{width:23px;font-size:16px}
+.sidefoot{border:1px solid #e5ebf4;border-radius:13px;padding:13px;background:#f8faff;color:#728099;font-size:11px}
+.main{min-width:0}.topbar{height:68px;background:#ffffffd9;backdrop-filter:blur(14px);border-bottom:1px solid #e7edf5;padding:0 30px;position:sticky;top:0;z-index:3}
+.crumb{font-size:12px;color:#7a879b}.crumb strong{color:#253550}
+.user{gap:10px}.avatar{background:#e8efff;color:#2858cf;border:1px solid #d7e3ff;font-weight:800}
+.content{padding:30px 30px 46px;max-width:1600px;margin:0 auto}
+.pagehead{margin-bottom:23px;gap:16px}.pagehead h1{font-size:29px;letter-spacing:-1px;font-weight:800}.sub{color:#7b879b}
+.btn{border:1px solid #dce4ef;background:#fff;color:#34435b;border-radius:10px;padding:9px 13px;font-weight:650;box-shadow:0 1px 2px #1b2b4508;transition:all .15s ease}
+.btn:hover{border-color:#b8c9e6;background:#f8faff;transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(135deg,#2d63eb,#3154d8);border-color:#315de5;color:white;box-shadow:0 5px 12px #315efb25}
+.btn.primary:hover{background:linear-gradient(135deg,#2457d9,#2848c6);box-shadow:0 7px 16px #315efb35}
+.metrics{gap:15px;margin-bottom:20px}
+.metric{border:1px solid #e3eaf3;border-radius:16px;padding:20px;background:linear-gradient(145deg,#fff,#fcfdff);box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
+.metric:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(25,45,80,.09)}
+.metriclabel{font-size:12px;font-weight:650;color:#77859b;letter-spacing:.015em}
+.metricvalue,.metric strong{font-variant-numeric:tabular-nums;letter-spacing:-.8px;font-size:27px;font-weight:800}
+.metricnote,.metric small{font-size:11px;color:#8b97a9}
+.metricicon{border-radius:11px;background:#edf2ff;color:#315efb}
+.panel{background:#fff;border:1px solid #e3eaf3;border-radius:16px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px}
+.panel h2{letter-spacing:-.3px;font-weight:750}
+.toolbar{gap:14px}.tablewrap{border:1px solid #e8edf5;border-radius:12px;overflow:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}
+thead th{background:#f6f8fc;color:#6c7b91;font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:800;padding:13px 14px;border-bottom:1px solid #e5ebf4;white-space:nowrap}
+tbody td{padding:13px 14px;border-bottom:1px solid #edf1f6;color:#394961;vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}tbody tr:hover td{background:#fafcff}
+input,select,textarea{border:1px solid #dbe3ef!important;border-radius:10px!important;background:#fff!important;padding:10px 12px!important;color:#1e2d45!important;outline:none;transition:border .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:#7da1fa!important;box-shadow:0 0 0 3px #315efb17!important}
+.field label{font-size:11px;font-weight:750;color:#52627b;margin-bottom:6px}
+.search{border-radius:11px!important;background:#fff!important}
+.badge,.pill{border-radius:999px;font-weight:750}
+.notice{border-radius:11px}
+.modalback{backdrop-filter:blur(4px);background:#101a2e78}
+.modal{border:1px solid #e6ecf5;border-radius:20px;padding:27px;box-shadow:0 28px 90px #10182c35}
+.modalhead h2{font-size:21px;letter-spacing:-.6px}
+.close{border:1px solid #e4e9f1;background:#f7f9fc}
+.footnote{border-top:1px solid #e4eaf2;padding-top:15px}
+@media(max-width:1000px){.shell{grid-template-columns:215px minmax(0,1fr)}.content{padding:24px 20px}.topbar{padding:0 20px}.panel{padding:18px}}
+@media(max-width:650px){.shell{display:block}.sidebar{padding:11px 12px;background:#fff;box-shadow:0 3px 12px #20365b08}.brand{font-size:17px}.nav button{border-radius:9px;padding:8px 10px}.topbar{height:54px;padding:0 14px}.content{padding:19px 12px 30px}.pagehead h1{font-size:23px}.metrics{gap:9px}.metric{padding:13px;border-radius:13px}.metricvalue,.metric strong{font-size:22px}.panel{padding:13px;border-radius:13px}.toolbar{align-items:flex-start;flex-wrap:wrap}.toolbarleft{flex-wrap:wrap}.modal{padding:19px;border-radius:16px}}
+
 </style>
 </head>
 <body>
