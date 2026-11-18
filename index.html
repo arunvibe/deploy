@@ -90,6 +90,65 @@ input:focus,select:focus,textarea:focus{border-color:#7da1fa!important;box-shado
 @media(max-width:900px){.analytics-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-chart{gap:7px;padding-left:7px;padding-right:7px}.analytics-bars{gap:3px}}
 @media(max-width:650px){.analytics-panel{padding:14px}.analytics-toolbar{display:flex}.analytics-filters{width:100%}.analytics-filters select{flex:1;min-width:130px}.analytics-filters input[type=date]{width:calc(50% - 5px)}.analytics-summary{gap:8px;margin:15px 0 20px}.analytics-stat{padding:11px}.analytics-stat strong{font-size:17px}.analytics-chart{gap:4px;min-height:145px;padding:12px 5px 7px}.analytics-bars{height:90px}.analytics-month label{font-size:9px}.chart-legend{font-size:10px}.analytics-chart-head{flex-wrap:wrap}}
 
+
+/* SDAAC Manager-inspired clinic console theme for MediTrack */
+:root{
+ --ink:#142c25;--muted:#687d75;--line:#dfe9e3;--bg:#f5f8f5;--white:#fff;
+ --blue:#08785d;--blue2:#e4f4ec;--green:#08785d;--greenbg:#e6f7ef;
+ --amber:#a76a00;--amberbg:#fff4d6;--red:#bd2835;--redbg:#ffebed;
+ --gold:#ffb900;--deep:#174a38;--deep2:#0e3b2d;
+ --shadow:0 8px 24px rgba(16,55,39,.08)
+}
+body{background:#f5f7f4;color:#152b23}
+.shell{grid-template-columns:302px minmax(0,1fr)}
+.sidebar{background:linear-gradient(180deg,#174b38 0%,#103d2e 100%);border-right:0;color:#eafff4;padding:22px 14px;gap:24px}
+.brand{color:#ffca32;font-family:Georgia,serif;font-size:18px;letter-spacing:.2px}
+.brand small{color:#59e0b0;font-family:inherit;font-size:10px;letter-spacing:.7px}
+.brand .logo,.cloudbrand .logo{background:linear-gradient(135deg,#ffcb29,#f39a00);color:#174b38;box-shadow:0 5px 15px #071f1838;border-radius:12px}
+.navlabel{color:#21c995}
+.nav button{color:#d6f2e6;border-radius:12px;font-weight:600;padding:11px 12px}
+.nav button:hover{background:#ffffff14;color:#fff;transform:translateX(2px)}
+.nav button.active{background:#ffb900;color:#173c2e;box-shadow:none;font-weight:800}
+.nav button .ico{color:inherit}
+.sidefoot{background:#0d382b;border:1px solid #23654d;color:#b9e4d1}
+.sidefoot strong{color:#ffca32}
+.topbar{height:66px;background:#fff;border-bottom:1px solid #e4ebe6;box-shadow:0 2px 8px #173e2d08}
+.crumb strong{color:#173d2e}
+.avatar{background:#e6f4ec;color:#08785d;border:1px solid #cce8d9}
+.content{max-width:1800px;padding:24px 28px 44px}
+.pagehead{background:linear-gradient(115deg,#174b38 0%,#21684d 100%);border:1px solid #0f563d;border-radius:20px;padding:28px 30px;margin:0 0 26px;color:#fff;box-shadow:0 10px 22px #123f2d20;align-items:center;min-height:190px}
+.pagehead .eyebrow{color:#ffca32;font-size:12px;letter-spacing:1.1px}
+.pagehead h1{color:#fff;font-family:Georgia,'Times New Roman',serif;font-size:36px;letter-spacing:-.8px;font-weight:700;margin:8px 0}
+.pagehead .sub{color:#d6f1e5;font-size:15px;max-width:690px}
+.pagehead .btn{border-color:#0d8764;color:#fff;background:#075b43;box-shadow:none}
+.pagehead .btn.primary{background:#ffb900;border-color:#ffb900;color:#143c2d;font-weight:800}
+.pagehead .btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
+.metric,.panel{border:1px solid #e0e8e3;border-radius:16px;box-shadow:0 2px 5px #173d2d10;background:#fff}
+.metric{padding:22px 23px}
+.metricicon{background:#e7f7ef;color:#08785d}
+.metric strong{color:#142c25}
+.panel{padding:22px}
+.panelhead h2{color:#142c25}
+.btn{border-radius:10px;border-color:#d9e5dd;color:#234638}
+.btn.primary{background:#08785d;border-color:#08785d;color:white}
+.btn.primary:hover{background:#06694f}
+.nav button:focus,.btn:focus{outline-color:#ffca32}
+.pill.ok{background:#e5f7ed;color:#08785d}
+.pill.low{background:#fff4d6;color:#a76a00}
+.tablewrap{border-radius:12px}
+thead th{background:#f2f7f3;color:#60786b}
+tbody tr:hover td{background:#f7fbf8}
+input:focus,select:focus,textarea:focus{border-color:#39a783!important;box-shadow:0 0 0 3px #0b8a6320!important}
+.modal{border-radius:18px}
+@media(max-width:1000px){.shell{grid-template-columns:245px minmax(0,1fr)}.content{padding:20px}}
+@media(max-width:650px){
+ .shell{display:block}.sidebar{padding:12px;gap:10px}.brand{font-size:16px}
+ .nav button.active{background:#ffb900;color:#173c2e}
+ .content{padding:16px 12px 28px}
+ .pagehead{padding:21px 18px;border-radius:15px;min-height:0;align-items:flex-start}
+ .pagehead h1{font-size:29px}
+}
+
 </style>
 </head>
 <body>
