@@ -194,6 +194,14 @@ input:focus,select:focus,textarea:focus{border-color:#39a783!important;box-shado
   <div class="analytics-stat"><span>Consultation fees</span><strong id="analyticsConsultation">₹0.00</strong></div>
   <div class="analytics-stat"><span>Outstanding bulk invoices</span><strong id="analyticsReceivable">₹0.00</strong></div>
  </div>
+ <div class="panel" style="padding:16px;margin:0 0 22px;box-shadow:none;background:#fbfcff">
+  <div class="panelhead"><div><h2 style="margin:0;font-size:15px">Payment tracking</h2><p>Collected and outstanding pharmacy payments for the selected date range.</p></div></div>
+  <div class="analytics-summary" style="margin:12px 0 0;grid-template-columns:repeat(3,minmax(0,1fr))">
+   <div class="analytics-stat"><span>GPay received</span><strong id="analyticsGpay">₹0.00</strong></div>
+   <div class="analytics-stat"><span>Cash received</span><strong id="analyticsCash">₹0.00</strong></div>
+   <div class="analytics-stat"><span>Pending payment</span><strong id="analyticsPending">₹0.00</strong></div>
+  </div>
+ </div>
  <div class="analytics-chart-head"><div><h3>Sales and profit trend</h3><p class="sub">Monthly totals for the selected period</p></div><div class="chart-legend"><span><i class="legend-sales"></i> Sales</span><span><i class="legend-profit"></i> Profit</span></div></div>
  <div id="analyticsChart" class="analytics-chart" aria-live="polite"></div>
  <div class="analytics-report-head"><div><h3>Profit breakdown</h3><p class="sub">Compare pharmacy issues with bulk manufacturing sales</p></div></div>
@@ -357,6 +365,11 @@ function renderAnalytics(){
  const issueDate=i=>{const t=Number(i.createdAt)||0;return t?new Date(t).toISOString().slice(0,10):''};
  const pharmacy=state.issues.filter(i=>inRange(issueDate(i)));
  const paidIssues=pharmacy.filter(i=>['sale','gpay','cash'].includes(i.issueType));
+ const paymentTotal=type=>pharmacy.filter(i=>i.issueType===type).reduce((a,i)=>a+Number(i.revenueTotal||0),0);
+ const gpayTotal=paymentTotal('gpay'),cashTotal=paymentTotal('cash'),pendingTotal=paymentTotal('pending');
+ document.getElementById('analyticsGpay').textContent='₹'+gpayTotal.toFixed(2);
+ document.getElementById('analyticsCash').textContent='₹'+cashTotal.toFixed(2);
+ document.getElementById('analyticsPending').textContent='₹'+pendingTotal.toFixed(2);
  const pharmacySales=paidIssues.reduce((a,i)=>a+Number(i.revenueTotal||0),0);
  const pharmacyCost=paidIssues.reduce((a,i)=>a+Number(i.costTotal||0),0);
  const pharmacyProfit=paidIssues.reduce((a,i)=>a+Number(i.profitTotal||0),0);
