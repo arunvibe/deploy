@@ -484,31 +484,47 @@ document.getElementById('medicineExcelFile')?.addEventListener('change',async e=
  const file=e.target.files?.[0];if(!file)return;
  try{
   if(typeof XLSX==='undefined')throw new Error('Excel reader could not load. Refresh and try again.');
-  const wb=XLSX.read(await file.arrayBuffer(),{type:'array'}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
-  const norm=v=>String(v??'').replace(/\\s+/g,' ').trim(),num=v=>{const n=Number(v);return Number.isFinite(n)?n:0},products=new Map();
+  const wb=XLSX.read(await file.arrayBuffer(),{type:'array'}),sheet=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(sheet,{defval:''});
+  const norm=v=>String(v??'').replace(/\\s+/g,' ').trim();
+  const num=v=>{const n=Number(String(v??'').replace(/,/g,''));return Number.isFinite(n)?n:0};
+  const products=new Map();
   rows.forEach(row=>{
-   const raw=norm(row.Name||row.name);if(!raw||/^total$/i.test(raw))return;
-   const free=/\\s+free$/i.test(raw),withoutFree=norm(raw.replace(/\\s+free$/i,'')),company=norm(row.company||row.Company||''),name=company&&withoutFree.toLowerCase().endsWith(company.toLowerCase())?norm(withoutFree.slice(0,-company.length)):withoutFree;if(!name)return;')+'
-   const key=name.toLowerCase(),x=products.get(key)||{name,company:company||'Not specified',paid:0,free:0,mrp:num(row['MRP=sum(']),rate:num(row.Rate),gst:num(row.Gst),unitCost:num(row['our price']),pack:norm(row.qty)};
-   const quantity=num(row.strip);
+   const cols={};Object.keys(row).forEach(k=>cols[norm(k).toLowerCase()]=row[k]);
+   const raw=norm(cols.name);if(!raw||/^total$/i.test(raw))return;
+   const free=/\\s+free$/i.test(raw);
+   const baseName=norm(raw.replace(/\\s+free$/i,''));
+   const company=norm(cols.company)||'Not specified';
+   const name=baseName.toLowerCase().endsWith(company.toLowerCase())&&company!=='Not specified'?norm(baseName.slice(0,-company.length)):baseName;
+   if(!name)return;
+   const category=norm(cols['medicine category']||cols['medicine category ']||cols.category)||'Medicine';
+   const key=(name+'|'+company).toLowerCase();
+   const x=products.get(key)||{name,company,category,paid:0,free:0,mrp:num(cols['mrp=sum(']||cols.mrp),rate:num(cols.rate),gst:num(String(cols.gst??'').replace('%','')),unitCost:num(cols['our price']),pack:norm(cols.qty)};
+   const quantity=num(cols.strip);
    if(free)x.free+=quantity;else x.paid+=quantity;
-   if(company)x.company=company;if(!x.mrp)x.mrp=num(row['MRP=sum(']);if(!x.rate)x.rate=num(row.Rate);if(!x.gst)x.gst=num(row.Gst);if(!x.unitCost)x.unitCost=num(row['our price']);if(!x.pack)x.pack=norm(row.qty);
+   if(category)x.category=category;
+   if(!x.mrp)x.mrp=num(cols['mrp=sum(']||cols.mrp);
+   if(!x.rate)x.rate=num(cols.rate);
+   if(!x.gst)x.gst=num(String(cols.gst??'').replace('%',''));
+   if(!x.unitCost)x.unitCost=num(cols['our price']);
+   if(!x.pack)x.pack=norm(cols.qty);
    products.set(key,x);
   });
-  const items=[...products.values()];if(!items.length)throw new Error('No medicine rows found in the first sheet.');
-  const summary=items.map(x=>x.name+' ('+x.pack+'): paid '+x.paid+', free '+x.free).join('\\n');
-  if(!confirm('Import/update '+items.length+' products from '+file.name+'?\\n\\n'+summary+'\\n\\nOnly AVP Excel opening-stock rows will be replaced. Other inventory and transactions remain unchanged.'))return;
-  const imported=state.medicines.filter(m=>m.importSource==='AVP stock list 31/08/2026'||(m.batch==='Excel opening stock'&&String(m.distributor||'').toLowerCase()==='avp'));
-  const oldByName=new Map();imported.forEach(m=>{const base=norm(m.name).replace(/\\s+free$/i,'').replace(/\\s+avp$/i,'').toLowerCase();if(!oldByName.has(base))oldByName.set(base,[]);oldByName.get(base).push(m)});
-  const keepIds=new Set();let added=0,updated=0;const stamp=Date.now();
+  const items=[...products.values()];if(!items.length)throw new Error('No medicine rows found. Check the Name column.');
+  const summary=items.map(x=>x.name+' | '+x.company+' | '+x.category+' | paid '+x.paid+' | free '+x.free).join('\\n');
+  if(!confirm('Import/update '+items.length+' products from '+file.name+'?\\n\\n'+summary+'\\n\\nOnly records previously imported from Excel will be updated. Other inventory and transactions remain unchanged.'))return;
+  const imported=state.medicines.filter(m=>m.importSource==='AVP stock list 31/08/2026'||m.importSource==='Excel stock import'||m.batch==='Excel opening stock');
+  const makeKey=(name,company)=>(norm(name).replace(/\\s+free$/i,'').toLowerCase()+'|'+norm(company).toLowerCase());
+  const oldByKey=new Map();
+  imported.forEach(m=>{const key=makeKey(m.name,m.company||m.distributor||'Not specified');if(!oldByKey.has(key))oldByKey.set(key,[]);oldByKey.get(key).push(m)});
+  let added=0,updated=0;const stamp=Date.now();
   items.forEach(x=>{
-   const matches=oldByName.get(x.name.toLowerCase())||[];
+   const matches=oldByKey.get(makeKey(x.name,x.company))||[];
    let m=matches.find(y=>!/\\s+free$/i.test(norm(y.name)))||matches[0];
-   if(!m){m={id:state.nextId++,name:x.name,category:'Medicine',batch:'Excel opening stock',stock:0,freeStock:0,min:0,expiry:'',company:'AVP',distributor:'AVP',invoice:'Excel stock list 31/08/2026',createdAt:stamp};state.medicines.push(m);added++}else updated++;
-   m.name=x.name;m.category=m.category&&m.category!=='Liquid'&&m.category!=='Tablet'?m.category:'Medicine';m.stock=x.paid;m.freeStock=x.free;m.packSize=x.pack;m.unitCost=x.unitCost;m.mrp=x.mrp;m.baseUnitCost=x.rate;m.gstRate=x.gst*100;m.company=x.company;m.distributor=x.company;m.batch='Excel opening stock';m.invoice='Excel stock list 31/08/2026';m.importSource='AVP stock list 31/08/2026';keepIds.add(m.id);
+   if(!m){m={id:state.nextId++,name:x.name,category:x.category,batch:'Excel opening stock',stock:0,freeStock:0,min:0,expiry:'',createdAt:stamp};state.medicines.push(m);added++}else updated++;
+   m.name=x.name;m.category=x.category;m.stock=x.paid;m.freeStock=x.free;m.packSize=x.pack;m.unitCost=x.unitCost;m.mrp=x.mrp;m.baseUnitCost=x.rate;m.gstRate=x.gst;m.company=x.company;m.distributor=x.company;m.batch='Excel opening stock';m.invoice='Excel stock import';m.importSource='Excel stock import';
    matches.forEach(y=>{if(y.id!==m.id)state.medicines=state.medicines.filter(z=>z.id!==y.id)});
   });
-  save();render();showNotice('Excel import corrected: '+items.length+' products processed ('+added+' added, '+updated+' updated). Paid and free quantities are now taken from the Strip column and shown separately.');
+  save();render();showNotice('Excel import complete: '+items.length+' products processed ('+added+' added, '+updated+' updated), including company and medicine category. Paid and free quantities remain separate.');
  }catch(err){console.error(err);showNotice('Excel import failed: '+(err.message||err),'error')}finally{e.target.value=''}
 });
 document.addEventListener('click',e=>{const d=e.target.closest('[data-delete]');if(d){deleteMed(Number(d.dataset.delete));return}const s=e.target.closest('[data-stock]');if(s){addMed(Number(s.dataset.stock));return}const i=e.target.closest('[data-issue]');if(i){issueMed(Number(i.dataset.issue));return}const vp=e.target.closest('[data-view-patient]');if(vp){viewPatient(vp.dataset.viewPatient);return}const dp=e.target.closest('[data-delete-patient]');if(dp){deletePatient(dp.dataset.deletePatient);return}const p=e.target.closest('[data-patient]');if(p)issueMed(null,p.dataset.patient)});
