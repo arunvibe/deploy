@@ -479,17 +479,29 @@ document.getElementById('medicineExcelFile')?.addEventListener('change',async e=
   if(typeof XLSX==='undefined')throw new Error('Excel reader could not load. Refresh and try again.');
   const wb=XLSX.read(await file.arrayBuffer(),{type:'array'}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
   const norm=v=>String(v??'').replace(/\\s+/g,' ').trim(),num=v=>{const n=Number(v);return Number.isFinite(n)?n:0},products=new Map();
-  rows.forEach(row=>{const raw=norm(row.Name||row.name);if(!raw||/^total$/i.test(raw))return;const free=/\\bfree\\b/i.test(raw),name=norm(raw.replace(/\\bfree\\b/ig,' '));if(!name)return;const key=name.toLowerCase(),x=products.get(key)||{name,paid:0,free:0,mrp:num(row['MRP=sum(']),rate:num(row.Rate),gst:num(row.Gst),unitCost:num(row['our price'])};if(free)x.free+=num(row.qty);else{x.paid+=num(row.qty)}if(!x.mrp)x.mrp=num(row['MRP=sum(']);if(!x.rate)x.rate=num(row.Rate);if(!x.gst)x.gst=num(row.Gst);if(!x.unitCost)x.unitCost=num(row['our price']);products.set(key,x)});
-  const items=[...products.values()];if(!items.length)throw new Error('No medicine rows found. Expected Name and qty columns.');
-  const summary=items.map(x=>x.name+': paid '+x.paid+', free '+x.free).join('\\n');
-  if(!confirm('Import '+items.length+' products into this signed-in workspace?\\n\\n'+summary+'\\n\\nExisting matching AVP Excel entries will be updated.'))return;
-  let added=0,updated=0;const stamp=Date.now();
-  items.forEach(x=>{let m=state.medicines.find(y=>String(y.name||'').trim().toLowerCase()===x.name.toLowerCase()&&String(y.batch||'')==='Excel opening stock'&&String(y.distributor||'').toLowerCase()==='avp');
-   if(!m){m={id:state.nextId++,name:x.name,category:/30.?s/i.test(x.name)?'Tablet':'Liquid',batch:'Excel opening stock',stock:x.paid,freeStock:x.free,min:0,expiry:'',company:'AVP',distributor:'AVP',invoice:'Excel stock list 31/08/2026',unitCost:x.unitCost,mrp:x.mrp,baseUnitCost:x.rate,gstRate:x.gst*100,createdAt:stamp};state.medicines.push(m);added++}
-   else{m.stock=x.paid;m.freeStock=x.free;m.unitCost=x.unitCost;m.mrp=x.mrp;m.baseUnitCost=x.rate;m.gstRate=x.gst*100;updated++}
-   m.importSource='AVP stock list 31/08/2026';
+  rows.forEach(row=>{
+   const raw=norm(row.Name||row.name);if(!raw||/^total$/i.test(raw))return;
+   const free=/\\s+free$/i.test(raw),name=norm(raw.replace(/\\s+free$/i,''));if(!name)return;
+   const key=name.toLowerCase(),x=products.get(key)||{name,paid:0,free:0,mrp:num(row['MRP=sum(']),rate:num(row.Rate),gst:num(row.Gst),unitCost:num(row['our price']),pack:norm(row.qty)};
+   const quantity=num(row.strip);
+   if(free)x.free+=quantity;else x.paid+=quantity;
+   if(!x.mrp)x.mrp=num(row['MRP=sum(']);if(!x.rate)x.rate=num(row.Rate);if(!x.gst)x.gst=num(row.Gst);if(!x.unitCost)x.unitCost=num(row['our price']);if(!x.pack)x.pack=norm(row.qty);
+   products.set(key,x);
   });
-  save();render();showNotice('Excel import complete: '+added+' added, '+updated+' updated. Paid and free quantities are separate.');
+  const items=[...products.values()];if(!items.length)throw new Error('No medicine rows found in the first sheet.');
+  const summary=items.map(x=>x.name+' ('+x.pack+'): paid '+x.paid+', free '+x.free).join('\\n');
+  if(!confirm('Import/update '+items.length+' products from '+file.name+'?\\n\\n'+summary+'\\n\\nOnly AVP Excel opening-stock rows will be replaced. Other inventory and transactions remain unchanged.'))return;
+  const imported=state.medicines.filter(m=>m.importSource==='AVP stock list 31/08/2026'||(m.batch==='Excel opening stock'&&String(m.distributor||'').toLowerCase()==='avp'));
+  const oldByName=new Map();imported.forEach(m=>{const base=norm(m.name).replace(/\\s+free$/i,'').toLowerCase();if(!oldByName.has(base))oldByName.set(base,[]);oldByName.get(base).push(m)});
+  const keepIds=new Set();let added=0,updated=0;const stamp=Date.now();
+  items.forEach(x=>{
+   const matches=oldByName.get(x.name.toLowerCase())||[];
+   let m=matches.find(y=>!/\\s+free$/i.test(norm(y.name)))||matches[0];
+   if(!m){m={id:state.nextId++,name:x.name,category:/30.?s/i.test(x.pack)?'Tablet':'Liquid',batch:'Excel opening stock',stock:0,freeStock:0,min:0,expiry:'',company:'AVP',distributor:'AVP',invoice:'Excel stock list 31/08/2026',createdAt:stamp};state.medicines.push(m);added++}else updated++;
+   m.name=x.name;m.stock=x.paid;m.freeStock=x.free;m.packSize=x.pack;m.unitCost=x.unitCost;m.mrp=x.mrp;m.baseUnitCost=x.rate;m.gstRate=x.gst*100;m.company='AVP';m.distributor='AVP';m.batch='Excel opening stock';m.invoice='Excel stock list 31/08/2026';m.importSource='AVP stock list 31/08/2026';keepIds.add(m.id);
+   matches.forEach(y=>{if(y.id!==m.id)state.medicines=state.medicines.filter(z=>z.id!==y.id)});
+  });
+  save();render();showNotice('Excel import corrected: '+items.length+' products processed ('+added+' added, '+updated+' updated). Paid and free quantities are now taken from the Strip column and shown separately.');
  }catch(err){console.error(err);showNotice('Excel import failed: '+(err.message||err),'error')}finally{e.target.value=''}
 });
 document.addEventListener('click',e=>{const d=e.target.closest('[data-delete]');if(d){deleteMed(Number(d.dataset.delete));return}const s=e.target.closest('[data-stock]');if(s){addMed(Number(s.dataset.stock));return}const i=e.target.closest('[data-issue]');if(i){issueMed(Number(i.dataset.issue));return}const vp=e.target.closest('[data-view-patient]');if(vp){viewPatient(vp.dataset.viewPatient);return}const dp=e.target.closest('[data-delete-patient]');if(dp){deletePatient(dp.dataset.deletePatient);return}const p=e.target.closest('[data-patient]');if(p)issueMed(null,p.dataset.patient)});
