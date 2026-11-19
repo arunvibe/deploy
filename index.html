@@ -487,24 +487,24 @@ document.getElementById('medicineExcelFile')?.addEventListener('change',async e=
   const norm=v=>String(v??'').replace(/\\s+/g,' ').trim(),num=v=>{const n=Number(v);return Number.isFinite(n)?n:0},products=new Map();
   rows.forEach(row=>{
    const raw=norm(row.Name||row.name);if(!raw||/^total$/i.test(raw))return;
-   const free=/\\s+free$/i.test(raw),name=norm(raw.replace(/\\s+free$/i,''));if(!name)return;
-   const key=name.toLowerCase(),x=products.get(key)||{name,paid:0,free:0,mrp:num(row['MRP=sum(']),rate:num(row.Rate),gst:num(row.Gst),unitCost:num(row['our price']),pack:norm(row.qty)};
+   const free=/\\s+free$/i.test(raw),withoutFree=norm(raw.replace(/\\s+free$/i,'')),companyMatch=withoutFree.match(/\\s+([a-z0-9&.-]+)$/i),company=companyMatch&&/^(avp)$/i.test(companyMatch[1])?companyMatch[1].toUpperCase():'',name=company?norm(withoutFree.slice(0,-companyMatch[0].length)):withoutFree;if(!name)return;
+   const key=name.toLowerCase(),x=products.get(key)||{name,company:company||'Unknown',paid:0,free:0,mrp:num(row['MRP=sum(']),rate:num(row.Rate),gst:num(row.Gst),unitCost:num(row['our price']),pack:norm(row.qty)};
    const quantity=num(row.strip);
    if(free)x.free+=quantity;else x.paid+=quantity;
-   if(!x.mrp)x.mrp=num(row['MRP=sum(']);if(!x.rate)x.rate=num(row.Rate);if(!x.gst)x.gst=num(row.Gst);if(!x.unitCost)x.unitCost=num(row['our price']);if(!x.pack)x.pack=norm(row.qty);
+   if(company)x.company=company;if(!x.mrp)x.mrp=num(row['MRP=sum(']);if(!x.rate)x.rate=num(row.Rate);if(!x.gst)x.gst=num(row.Gst);if(!x.unitCost)x.unitCost=num(row['our price']);if(!x.pack)x.pack=norm(row.qty);
    products.set(key,x);
   });
   const items=[...products.values()];if(!items.length)throw new Error('No medicine rows found in the first sheet.');
   const summary=items.map(x=>x.name+' ('+x.pack+'): paid '+x.paid+', free '+x.free).join('\\n');
   if(!confirm('Import/update '+items.length+' products from '+file.name+'?\\n\\n'+summary+'\\n\\nOnly AVP Excel opening-stock rows will be replaced. Other inventory and transactions remain unchanged.'))return;
   const imported=state.medicines.filter(m=>m.importSource==='AVP stock list 31/08/2026'||(m.batch==='Excel opening stock'&&String(m.distributor||'').toLowerCase()==='avp'));
-  const oldByName=new Map();imported.forEach(m=>{const base=norm(m.name).replace(/\\s+free$/i,'').toLowerCase();if(!oldByName.has(base))oldByName.set(base,[]);oldByName.get(base).push(m)});
+  const oldByName=new Map();imported.forEach(m=>{const base=norm(m.name).replace(/\\s+free$/i,'').replace(/\\s+avp$/i,'').toLowerCase();if(!oldByName.has(base))oldByName.set(base,[]);oldByName.get(base).push(m)});
   const keepIds=new Set();let added=0,updated=0;const stamp=Date.now();
   items.forEach(x=>{
    const matches=oldByName.get(x.name.toLowerCase())||[];
    let m=matches.find(y=>!/\\s+free$/i.test(norm(y.name)))||matches[0];
-   if(!m){m={id:state.nextId++,name:x.name,category:/30.?s/i.test(x.pack)?'Tablet':'Liquid',batch:'Excel opening stock',stock:0,freeStock:0,min:0,expiry:'',company:'AVP',distributor:'AVP',invoice:'Excel stock list 31/08/2026',createdAt:stamp};state.medicines.push(m);added++}else updated++;
-   m.name=x.name;m.stock=x.paid;m.freeStock=x.free;m.packSize=x.pack;m.unitCost=x.unitCost;m.mrp=x.mrp;m.baseUnitCost=x.rate;m.gstRate=x.gst*100;m.company='AVP';m.distributor='AVP';m.batch='Excel opening stock';m.invoice='Excel stock list 31/08/2026';m.importSource='AVP stock list 31/08/2026';keepIds.add(m.id);
+   if(!m){m={id:state.nextId++,name:x.name,category:'Medicine',batch:'Excel opening stock',stock:0,freeStock:0,min:0,expiry:'',company:'AVP',distributor:'AVP',invoice:'Excel stock list 31/08/2026',createdAt:stamp};state.medicines.push(m);added++}else updated++;
+   m.name=x.name;m.category=m.category&&m.category!=='Liquid'&&m.category!=='Tablet'?m.category:'Medicine';m.stock=x.paid;m.freeStock=x.free;m.packSize=x.pack;m.unitCost=x.unitCost;m.mrp=x.mrp;m.baseUnitCost=x.rate;m.gstRate=x.gst*100;m.company=x.company;m.distributor=x.company;m.batch='Excel opening stock';m.invoice='Excel stock list 31/08/2026';m.importSource='AVP stock list 31/08/2026';keepIds.add(m.id);
    matches.forEach(y=>{if(y.id!==m.id)state.medicines=state.medicines.filter(z=>z.id!==y.id)});
   });
   save();render();showNotice('Excel import corrected: '+items.length+' products processed ('+added+' added, '+updated+' updated). Paid and free quantities are now taken from the Strip column and shown separately.');
