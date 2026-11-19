@@ -335,13 +335,14 @@ const dashboardLow=state.medicines.filter(m=>Number(m.stock)<=Number(m.min)).sor
 document.getElementById('dashLowStock').innerHTML=dashboardLow.map(m=>'<tr><td><span class="medname">'+esc(m.name)+'</span><span class="subtext">'+esc(m.category)+' · '+esc(m.batch)+'</span></td><td><b>'+Number(m.stock)+'</b></td><td>'+Number(m.min)+'</td><td>'+badge(m)+'</td></tr>').join('')||'<tr><td colspan="4"><div class="empty"><b>All stocked up!</b>No medicines are currently at or below their minimum level.</div></td></tr>';
 const ms=document.getElementById('medicineSearch')?.value.toLowerCase()||'';
 const lowStockOnly=document.getElementById('lowStockToggle')?.dataset.active==='true';
-const filtered=state.medicines.filter(m=>(m.name+' '+m.company+' '+m.batch+' '+m.category).toLowerCase().includes(ms)&&companyMatches(m)&&(!lowStockOnly||Number(m.stock)<=Number(m.min)));
+
 const lowStockToggle=document.getElementById('lowStockToggle');if(lowStockToggle){lowStockToggle.textContent=lowStockOnly?'Show all stock':'Show low stock only';lowStockToggle.classList.toggle('primary',lowStockOnly);lowStockToggle.setAttribute('aria-pressed',String(lowStockOnly));}
 document.getElementById('inventoryCount').textContent=filtered.length+' items'+(lowStockOnly?' · low stock':'');
 const companyFilter=document.getElementById('companyCostFilter'),selectedCompany=companyFilter?.value||'';
 const companies=[...new Set(state.medicines.map(m=>String(m.company||m.distributor||'Not specified').trim()||'Not specified'))].sort((a,b)=>a.localeCompare(b));
 if(companyFilter){companyFilter.innerHTML='<option value="">All companies</option>'+companies.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');companyFilter.value=selectedCompany;}
 const companyMatches=m=>!selectedCompany?(true):(String(m.company||m.distributor||'Not specified').trim()||'Not specified')===selectedCompany;
+const filtered=state.medicines.filter(m=>(m.name+' '+m.company+' '+m.batch+' '+m.category).toLowerCase().includes(ms)&&companyMatches(m)&&(!lowStockOnly||Number(m.stock)<=Number(m.min)));
 const companyValue=state.medicines.filter(companyMatches).reduce((sum,m)=>sum+batchStockValue(m),0);
 document.getElementById('inventoryTotalValue').textContent='₹'+companyValue.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
 const totalLabel=document.querySelector('#inventoryTotalValue')?.previousElementSibling;if(totalLabel)totalLabel.textContent=selectedCompany?'Total stock value — '+selectedCompany:'Total inventory stock value';
