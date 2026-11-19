@@ -487,7 +487,7 @@ document.getElementById('medicineExcelFile')?.addEventListener('change',async e=
   const norm=v=>String(v??'').replace(/\\s+/g,' ').trim(),num=v=>{const n=Number(v);return Number.isFinite(n)?n:0},products=new Map();
   rows.forEach(row=>{
    const raw=norm(row.Name||row.name);if(!raw||/^total$/i.test(raw))return;
-   const free=/\\s+free$/i.test(raw),withoutFree=norm(raw.replace(/\\s+free$/i,'')),company=norm(row.company||row.Company||''),name=company?norm(withoutFree.replace(new RegExp('\\\\s+'+company.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\const free=/\\s+free$/i.test(raw),withoutFree=norm(raw.replace(/\\s+free$/i,'')),companyMatch=withoutFree.match(/\\s+([a-z0-9&.-]+)$/i),company=companyMatch&&/^(avp)$/i.test(companyMatch[1])?companyMatch[1].toUpperCase():'',name=company?norm(withoutFree.slice(0,-companyMatch[0].length)):withoutFree;if(!name)return;')+'
+   const free=/\\s+free$/i.test(raw),withoutFree=norm(raw.replace(/\\s+free$/i,'')),company=norm(row.company||row.Company||''),name=company&&withoutFree.toLowerCase().endsWith(company.toLowerCase())?norm(withoutFree.slice(0,-company.length)):withoutFree;if(!name)return;')+'
    const key=name.toLowerCase(),x=products.get(key)||{name,company:company||'Not specified',paid:0,free:0,mrp:num(row['MRP=sum(']),rate:num(row.Rate),gst:num(row.Gst),unitCost:num(row['our price']),pack:norm(row.qty)};
    const quantity=num(row.strip);
    if(free)x.free+=quantity;else x.paid+=quantity;
