@@ -425,7 +425,7 @@ function openModal(title,body,onSubmit,submitText='Save'){
 const isIssuePage=/^(Record patient visit|New visit for )/.test(title);
 const root=document.getElementById('modalRoot');
 if(isIssuePage){
-root.innerHTML='<div class="issue-page-view"><div class="issue-page-top"><div><div class="eyebrow">MEDICINE DISPENSING</div><h1>'+title+'</h1><p class="sub">Create a patient visit and record all medicines issued.</p></div><button type="button" class="btn" id="closeModal">← Back</button></div><form id="modalForm" class="issue-page-form">'+body+'<div class="formactions"><button type="button" class="btn" id="cancelModal">Cancel</button><button class="btn primary" type="submit">'+submitText+'</button></div></form></div>';
+root.innerHTML='<div class="issue-page-view"><div class="issue-page-top"><div><div class="eyebrow">MEDICINE DISPENSING</div><h1>'+title+'</h1><p class="sub">Create a patient visit and record all medicines issued.</p></div><button type="button" class="btn" id="closeModal">← Back</button></div><form id="modalForm" class="issue-page-form" novalidate>'+body+'<div class="formactions"><button type="button" class="btn" id="cancelModal">Cancel</button><button class="btn primary" type="submit">'+submitText+'</button></div></form></div>';
 }else{
 root.innerHTML='<div class="modalback" id="modalback"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modalhead"><h2 id="modalTitle">'+title+'</h2><button class="close" id="closeModal" aria-label="Close">×</button></div><form id="modalForm">'+body+'<div class="formactions"><button type="button" class="btn" id="cancelModal">Cancel</button><button class="btn primary" type="submit">'+submitText+'</button></div></form></div></div>';
 }
